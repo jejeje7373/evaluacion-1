@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
 /**
- * Componente ProductCard
- * Props:
- * - producto: Objeto con datos del producto
- * - onAddToCart: Callback invocado al añadir al carro
- * Estado:
- * - cantidad: Unidades a añadir (1 a stock)
- * - mensajeFeedback: Notificación temporal de confirmación
+ * Componente ProductCard (Estilo SmoothUI + Bootstrap 5)
+ * 
+ * Integra micro-interacciones fluidas y físicas de resorte (spring physics)
+ * inspiradas en SmoothUI (smoothui.dev), conservando la grilla responsiva de Bootstrap.
  */
 export default function ProductCard({ producto, onAddToCart }) {
   const [cantidad, setCantidad] = useState(1);
@@ -36,18 +34,25 @@ export default function ProductCard({ producto, onAddToCart }) {
   }).format(producto.precio);
 
   return (
-    <div className="card h-100 shadow-sm border-0 product-card" data-testid={`product-card-${producto.codigo}`}>
-      <div className="position-relative bg-light text-center p-3 border-bottom rounded-top">
+    <motion.div 
+      className="card h-100 shadow-sm border-0 product-card" 
+      data-testid={`product-card-${producto.codigo}`}
+      whileHover={{ y: -6 }}
+      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+    >
+      <div className="position-relative bg-light text-center p-3 border-bottom rounded-top overflow-hidden">
         <span className="badge bg-success position-absolute top-0 start-0 m-2 rounded-pill small" data-testid="badge-categoria">
           {producto.categoria}
         </span>
-        <img 
+        <motion.img 
           src={producto.imagen} 
           alt={producto.nombre} 
           className="img-fluid" 
           style={{ height: '140px', objectFit: 'contain' }}
           data-testid="product-image"
           onError={(e) => { e.target.style.display = 'none'; }}
+          whileHover={{ scale: 1.08 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         />
       </div>
 
@@ -62,7 +67,7 @@ export default function ProductCard({ producto, onAddToCart }) {
         </div>
 
         <p className="text-muted small mb-2 fst-italic" data-testid="product-attribute">
-          <i className="bi bi-geo-alt-fill me-1"></i> {producto.atributo}
+          <i className="bi bi-geo-alt-fill text-success me-1"></i> {producto.atributo}
         </p>
 
         <p className="card-text small text-secondary flex-grow-1" data-testid="product-description">
@@ -113,21 +118,31 @@ export default function ProductCard({ producto, onAddToCart }) {
             </button>
           </div>
 
-          <button 
+          <motion.button 
             className="btn btn-success btn-sm flex-grow-1"
             onClick={handleAgregar}
             data-testid="btn-add-cart"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
           >
             <i className="bi bi-cart-plus me-1"></i> Agregar
-          </button>
+          </motion.button>
         </div>
 
         {mensajeFeedback && (
-          <div className="alert alert-success py-1 px-2 mt-2 mb-0 small text-center" role="alert" data-testid="feedback-message">
+          <motion.div 
+            className="alert alert-success py-1 px-2 mt-2 mb-0 small text-center" 
+            role="alert" 
+            data-testid="feedback-message"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
             <i className="bi bi-check-circle-fill me-1"></i> {mensajeFeedback}
-          </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

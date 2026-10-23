@@ -98,3 +98,4 @@ Verifica la gestión administrativa de los productos:
 3. **`Contraseñas desiguales`:** Comprueba que detecte la discrepancia y pinte el input con mensaje de error en el DOM.
 4. **`Términos obligatorios`:** Exige marcar el checkbox de términos para poder registrarse.
 5. **`Persistencia simulada`:** Con un Mock/Spy sobre `localStorage.setItem`, comprueba que el nuevo usuario quede guardado en `localStorage`.
+
