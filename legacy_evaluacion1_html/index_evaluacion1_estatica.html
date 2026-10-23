@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuertoHogar | Productos Frescos del Campo a tu Puerta en Chile</title>
+  
+  <!-- Tipografías Oficiales: Montserrat y Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Única hoja de estilos externa requerida -->
+  <link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+
+  <!-- Barra Superior de Servicio y Autenticación -->
+  <div class="top-bar">
+    <div class="top-bar-container">
+      <div class="top-bar-info">
+        <span class="top-bar-tag">6 años de experiencia</span>
+        <span>Envíos en más de 9 puntos en Chile: Santiago, Viña del Mar, Puerto Montt y más</span>
+      </div>
+      <div class="top-bar-auth" id="top-bar-auth-container">
+        <!-- Renderizado dinámico desde main.js: Iniciar sesión / Registrar o Saludo -->
+        <a href="login.html">Iniciar sesión</a>
+        <span>|</span>
+        <a href="registro.html">Registrar usuario</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encabezado de Ancho Completo -->
+  <header class="main-header">
+    <div class="header-container">
+      <!-- Logotipo y Nombre -->
+      <a href="index.html" class="brand-logo" aria-label="HuertoHogar Inicio">
+        <img src="assets/img/logo.svg" alt="Logotipo de HuertoHogar - Del campo a tu mesa" />
+      </a>
+
+      <!-- Menú Centrado -->
+      <nav class="main-nav" aria-label="Navegación principal">
+        <ul class="nav-links">
+          <li><a href="index.html" class="active">Inicio</a></li>
+          <li><a href="#catalogo">Productos</a></li>
+          <li><a href="#cobertura">Cobertura</a></li>
+          <li><a href="carrito.html">Carrito</a></li>
+        </ul>
+      </nav>
+
+      <!-- Carrito a la Derecha con Indicador Cart (n) -->
+      <div class="header-actions">
+        <a href="carrito.html" class="cart-btn" id="header-cart-btn" aria-label="Ver carrito">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+          <span>Cart (<span class="cart-badge">0</span>)</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido Principal Semántico -->
+  <main>
+
+    <!-- Portada (Hero) a Dos Columnas -->
+    <section class="hero">
+      <div class="hero-container">
+        <!-- Columna 1: Título, Texto y Llamado a la Acción -->
+        <div class="hero-content">
+          <span class="hero-tag">🌱 Conexión Directa con el Productor</span>
+          <h1 class="hero-title">¡Descubre la <span>frescura del campo</span> con HuertoHogar!</h1>
+          <p class="hero-description">
+            Llevamos la máxima calidad y frescura de los campos chilenos directamente a la puerta de tu hogar. 
+            Apoyamos a agricultores locales, fomentando una alimentación consciente, saludable y 100% sostenible.
+          </p>
+
+          <div class="hero-features">
+            <div class="hero-feature-item">
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>Cosecha del día</span>
+            </div>
+            <div class="hero-feature-item">
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>Sin pesticidas sintéticos</span>
+            </div>
+            <div class="hero-feature-item">
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>Despacho refrigerado</span>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <a href="#catalogo" class="btn btn-primary">Ver Catálogo de Productos</a>
+            <a href="registro.html" class="btn btn-secondary">Crear Cuenta</a>
+          </div>
+        </div>
+
+        <!-- Columna 2: Imagen de la tienda con atributo alt descriptivo -->
+        <div class="hero-image-wrapper">
+          <img src="assets/img/hero-campo.svg" alt="Canasta de cosecha fresca con verduras y frutas recién cosechadas frente a campos chilenos de HuertoHogar" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Catálogo de Productos Oficiales (8 Artículos en formato Semántico <article>) -->
+    <section class="catalogo-section" id="catalogo">
+      <div class="section-header">
+        <p class="section-subtitle">Nuestra Cosecha Seleccionada</p>
+        <h2 class="section-title">Catálogo de Productos Frescos</h2>
+        <p class="section-desc">
+          Frutas, verduras y alimentos orgánicos cultivados con amor por productores locales de nuestras regiones asociadas.
+        </p>
+      </div>
+
+      <div class="catalogo-grid">
+
+        <!-- Producto 1: FR001 Manzanas Fuji -->
+        <article class="producto-card" id="card-FR001">
+          <span class="producto-badge">Más Vendido</span>
+          <div class="producto-img-container">
+            <img src="assets/img/manzanas.svg" alt="Manzanas Fuji crujientes y dulces cultivadas en el Valle del Maule" />
+          </div>
+          <div class="producto-info">
+            <span class="producto-codigo">FR001</span>
+            <h3 class="producto-nombre">Manzanas Fuji</h3>
+            <span class="producto-atributo">Origen: Valle del Maule</span>
+            <p class="producto-desc">
+              Manzanas Fuji crujientes y dulces, cultivadas en el Valle del Maule. Perfectas para meriendas saludables o repostería natural.
+            </p>
+            <div class="producto-precio-row">
+              <span class="producto-precio">$1.200 CLP</span>
+              <span class="producto-stock">Stock: 150 kilos</span>
+            </div>
+            <button type="button" class="btn-add-cart" onclick="agregarAlCarrito('FR001')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Agregar al carrito
+            </button>
+          </div>
+        </article>
+
+        <!-- Producto 2: FR002 Naranjas Valencia -->
+        <article class="producto-card" id="card-FR002">
+          <span class="producto-badge">Vitamina C</span>
+          <div class="producto-img-container">
+            <img src="assets/img/naranjas.svg" alt="Naranjas Valencia jugosas para zumos frescos cultivadas en clima templado" />
+          </div>
+          <div class="producto-info">
+            <span class="producto-codigo">FR002</span>
+            <h3 class="producto-nombre">Naranjas Valencia</h3>
+            <span class="producto-atributo">Ricas en Vitamina C</span>
+            <p class="producto-desc">
+              Jugosas y aromáticas, estas naranjas Valencia son ideales para zumos frescos matutinos. Cosechadas en el punto óptimo de madurez.
+            </p>
+            <div class="producto-precio-row">
+              <span class="producto-precio">$1.000 CLP</span>
+              <span class="producto-stock">Stock: 200 kilos</span>
+            </div>
+            <button type="button" class="btn-add-cart" onclick="agregarAlCarrito('FR002')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Agregar al carrito
+            </button>
+          </div>
+        </article>
+
+        <!-- Producto 3: FR003 Plátanos Cavendish -->
+        <article class="producto-card" id="card-FR003">
+          <span class="producto-badge">Energía Natural</span>
+          <div class="producto-img-container">
+            <img src="assets/img/platanos.svg" alt="Plátanos Cavendish maduros y dulces ricos en potasio y minerales" />
+          </div>
+          <div class="producto-info">
+            <span class="producto-codigo">FR003</span>
+            <h3 class="producto-nombre">Plátanos Cavendish</h3>
+            <span class="producto-atributo">Ricos en Potasio</span>
+            <p class="producto-desc">
+              Plátanos maduros y dulces, perfectos para el desayuno, batidos o como snack energético para deportistas y niños.
+            </p>
+            <div class="producto-precio-row">
+              <span class="producto-precio">$800 CLP</span>
+              <span class="producto-stock">Stock: 250 kilos</span>
+            </div>
+            <button type="button" class="btn-add-cart" onclick="agregarAlCarrito('FR003')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Agregar al carrito
+            </button>
+          </div>
+        </article>
+
+        <!-- Producto 4: VR001 Zanahorias Orgánicas -->
+        <article class="producto-card" id="card-VR001">
+          <span class="producto-badge">100% Orgánico</span>
+          <div class="producto-img-container">
+            <img src="assets/img/zanahorias.svg" alt="Zanahorias Orgánicas crujientes sin pesticidas cultivadas en O'Higgins" />
+          </div>
+          <div class="producto-info">
+            <span class="producto-codigo">VR001</span>
+            <h3 class="producto-nombre">Zanahorias Orgánicas</h3>
+            <span class="producto-atributo">Origen: Región de O'Higgins</span>
+            <p class="producto-desc">
+              Zanahorias crujientes cultivadas sin pesticidas en los fértiles suelos de O'Higgins. Excelente fuente de betacarotenos y fibra.
+            </p>
+            <div class="producto-precio-row">
+              <span class="producto-precio">$900 CLP</span>
+              <span class="producto-stock">Stock: 100 kilos</span>
+            </div>
+            <button type="button" class="btn-add-cart" onclick="agregarAlCarrito('VR001')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Agregar al carrito
+            </button>
+          </div>
+        </article>
+
+        <!-- Producto 5: VR002 Espinacas Frescas -->
+        <article class="producto-card" id="card-VR002">
+          <span class="producto-badge">Hojas Tiernas</span>
+          <div class="producto-img-container">
+            <img src="assets/img/espinacas.svg" alt="Espinacas Frescas en bolsa de 500g cultivadas bajo prácticas sustentables" />
+          </div>
+          <div class="producto-info">
+            <span class="producto-codigo">VR002</span>
+            <h3 class="producto-nombre">Espinacas Frescas</h3>
+            <span class="producto-atributo">Bolsa 500g seleccionada</span>
+            <p class="producto-desc">
+              Espinacas de hoja tierna y vibrante, perfectas para ensaladas frescas, salteados y batidos verdes détox. Sin aditivos.
+            </p>
+            <div class="producto-precio-row">
+              <span class="producto-precio">$700 CLP</span>
+              <span class="producto-stock">Stock: 80 bolsas</span>
+            </div>
+            <button type="button" class="btn-add-cart" onclick="agregarAlCarrito('VR002')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Agregar al carrito
+            </button>
+          </div>
+        </article>
+
+        <!-- Producto 6: VR003 Pimientos Tricolores -->
+        <article class="producto-card" id="card-VR003">
+          <span class="producto-badge">Mix Color</span>
+          <div class="producto-img-container">
+            <img src="assets/img/pimientos.svg" alt="Pimientos Tricolores rojos amarillos y verdes para salteados y platos gourmet" />
+          </div>
+          <div class="producto-info">
+            <span class="producto-codigo">VR003</span>
+            <h3 class="producto-nombre">Pimientos Tricolores</h3>
+            <span class="producto-atributo">Rojo, Amarillo y Verde</span>
+            <p class="producto-desc">
+              Selección de pimientos carnosos y aromáticos. Llenan de color y nutrientes tus platos, salteados y ensaladas mediterráneas.
+            </p>
+            <div class="producto-precio-row">
+              <span class="producto-precio">$1.500 CLP</span>
+              <span class="producto-stock">Stock: 120 kilos</span>
+            </div>
+            <button type="button" class="btn-add-cart" onclick="agregarAlCarrito('VR003')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Agregar al carrito
+            </button>
+          </div>
+        </article>
+
+        <!-- Producto 7: PO001 Miel Orgánica -->
+        <article class="producto-card" id="card-PO001">
+          <span class="producto-badge">Artesanal</span>
+          <div class="producto-img-container">
+            <img src="assets/img/miel.svg" alt="Frasco de Miel Orgánica pura de 500g producida por apicultores locales chilenos" />
+          </div>
+          <div class="producto-info">
+            <span class="producto-codigo">PO001</span>
+            <h3 class="producto-nombre">Miel Orgánica</h3>
+            <span class="producto-atributo">Frasco 500g puro</span>
+            <p class="producto-desc">
+              Miel pura de bosque nativo recolectada por apicultores locales. Sin preservantes ni azúcares añadidos, dulce y saludable.
+            </p>
+            <div class="producto-precio-row">
+              <span class="producto-precio">$5.000 CLP</span>
+              <span class="producto-stock">Stock: 50 frascos</span>
+            </div>
+            <button type="button" class="btn-add-cart" onclick="agregarAlCarrito('PO001')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Agregar al carrito
+            </button>
+          </div>
+        </article>
+
+        <!-- Producto 8: PO003 Quinua Orgánica -->
+        <article class="producto-card" id="card-PO003">
+          <span class="producto-badge">Superalimento</span>
+          <div class="producto-img-container">
+            <img src="assets/img/quinua.svg" alt="Bolsa de Quinua Orgánica en grano premium rica en aminoácidos y proteínas" />
+          </div>
+          <div class="producto-info">
+            <span class="producto-codigo">PO003</span>
+            <h3 class="producto-nombre">Quinua Orgánica</h3>
+            <span class="producto-atributo">Grano Andino Seleccionado</span>
+            <p class="producto-desc">
+              Superalimento libre de gluten, rico en proteínas vegetales completas y minerales. Versátil para ensaladas, risottos y postres.
+            </p>
+            <div class="producto-precio-row">
+              <span class="producto-precio">$3.200 CLP</span>
+              <span class="producto-stock">Stock: 70 kilos</span>
+            </div>
+            <button type="button" class="btn-add-cart" onclick="agregarAlCarrito('PO003')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Agregar al carrito
+            </button>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Sección de Video Embebido (<video> / iframe reproducible) -->
+    <section class="video-section" id="video-huerto">
+      <div class="video-container">
+        <p class="section-subtitle">Conoce Nuestro Compromiso</p>
+        <h2 class="section-title">De Nuestras Tierras a tu Mesa</h2>
+        <p class="section-desc">
+          Acompaña a nuestros agricultores asociados en una jornada de recolección sustentable y descubre cómo garantizamos la frescura de cada entrega.
+        </p>
+
+        <div class="video-wrapper">
+          <!-- Video HTML5 reproducible con fallback a iframe -->
+          <iframe 
+            src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?controls=1&rel=0" 
+            title="Video corporativo de HuertoHogar: Prácticas agrícolas y frescura del campo chileno" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Cobertura y Sostenibilidad en Chile -->
+    <section class="cobertura-section" id="cobertura">
+      <div class="cobertura-grid">
+        <div class="cobertura-info">
+          <p class="section-subtitle">Presencia Nacional</p>
+          <h3>Más de 6 años llevando salud a más de 9 puntos de Chile</h3>
+          <p>
+            En HuertoHogar creemos en acortar distancias entre el productor campesino y las familias de nuestro país. 
+            Contamos con centros de distribución y despacho directo en las principales urbes del territorio:
+          </p>
+
+          <ul class="puntos-list">
+            <li class="punto-item">
+              <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span>Santiago (Región Metropolitana)</span>
+            </li>
+            <li class="punto-item">
+              <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span>Viña del Mar & Valparaíso</span>
+            </li>
+            <li class="punto-item">
+              <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span>Concepción & Nacimiento</span>
+            </li>
+            <li class="punto-item">
+              <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span>Villarrica (La Araucanía)</span>
+            </li>
+            <li class="punto-item">
+              <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span>Puerto Montt (Los Lagos)</span>
+            </li>
+          </ul>
+
+          <p style="font-size: 0.9rem; color: #555;">
+            * Entregas realizadas en vehículos con control térmico y empaques compostables biodegradables.
+          </p>
+        </div>
+
+        <div class="mapa-visual">
+          <svg viewBox="0 0 400 260" width="100%" height="auto" role="img" aria-label="Impacto ecológico y mapa de distribución de HuertoHogar">
+            <rect width="400" height="260" rx="12" fill="#E8F5E9" />
+            <circle cx="200" cy="130" r="85" fill="#C8E6C9" opacity="0.6" />
+            <path d="M 200 65 Q 235 110 200 170 Q 165 110 200 65 Z" fill="#2E8B57" />
+            <circle cx="200" cy="120" r="14" fill="#FFD700" />
+            <text x="200" y="210" font-family="'Playfair Display', serif" font-size="16" font-weight="bold" fill="#8B4513" text-anchor="middle">Red Sostenible HuertoHogar</text>
+            <text x="200" y="230" font-family="'Montserrat', sans-serif" font-size="11" fill="#2E7D32" font-weight="600" text-anchor="middle">-40% Huella de Carbono vs Canal Tradicional</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Pie de Página (Footer Semántico) -->
+  <footer class="main-footer">
+    <div class="footer-container">
+      <!-- Columna 1: Nombre de la tienda y descripción -->
+      <div class="footer-col">
+        <h4>HuertoHogar</h4>
+        <p>
+          Tienda online dedicada a conectar a las familias chilenas con la frescura, pureza y calidad de los productos agrícolas del país.
+        </p>
+        <p><strong>Casa Matriz:</strong> Av. del Campo 1420, Santiago, Chile</p>
+        <p><strong>Contacto:</strong> contacto@huertohogar.cl | +56 9 8765 4321</p>
+      </div>
+
+      <!-- Columna 2: Tres Categorías Requeridas -->
+      <div class="footer-col">
+        <h4>Categorías</h4>
+        <ul>
+          <li><a href="#catalogo">Frutas Frescas</a></li>
+          <li><a href="#catalogo">Verduras Orgánicas</a></li>
+          <li><a href="#catalogo">Productos Orgánicos y Granos</a></li>
+          <li><a href="#catalogo">Lácteos de Granjas Locales</a></li>
+        </ul>
+      </div>
+
+      <!-- Columna 3: Enlaces Rápidos y Puntos -->
+      <div class="footer-col">
+        <h4>Puntos de Entrega</h4>
+        <ul>
+          <li><a href="#cobertura">Santiago & RM</a></li>
+          <li><a href="#cobertura">Valparaíso & Viña del Mar</a></li>
+          <li><a href="#cobertura">Concepción & Nacimiento</a></li>
+          <li><a href="#cobertura">Villarrica & Puerto Montt</a></li>
+        </ul>
+      </div>
+
+      <!-- Columna 4: Formulario de Boletín y Medios de Pago -->
+      <div class="footer-col">
+        <h4>Boletín Semanal</h4>
+        <p>Recibe recetas de temporada y ofertas exclusivas de nuestra huerta.</p>
+        <form class="newsletter-form" id="boletin-form">
+          <div class="newsletter-input-group">
+            <input type="email" id="boletin-email" placeholder="Tu correo electrónico" required aria-label="Correo para el boletín" />
+            <button type="submit">Suscribir</button>
+          </div>
+        </form>
+
+        <h4 style="margin-top: 1.5rem; font-size: 1.05rem;">Medios de Pago</h4>
+        <div class="pagos-container">
+          <span class="pago-badge">Webpay Plus</span>
+          <span class="pago-badge">Redcompra</span>
+          <span class="pago-badge">Visa</span>
+          <span class="pago-badge">Mastercard</span>
+          <span class="pago-badge">Transferencia</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 HuertoHogar Chile. Todos los derechos reservados. Evaluación Formativa N.° 1 (DSY1104).</p>
+      <p>Desarrollado con HTML5 Semántico, CSS3 y JavaScript vanilla con persistencia en localStorage.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts JavaScript Obligatorios -->
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
+

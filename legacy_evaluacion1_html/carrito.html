@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Carrito de Compras | HuertoHogar</title>
+
+  <!-- Tipografías Oficiales -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Hoja de estilos externa -->
+  <link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <div class="top-bar">
+    <div class="top-bar-container">
+      <div class="top-bar-info">
+        <span class="top-bar-tag">HuertoHogar</span>
+        <span>Productos orgánicos directos del campo chileno a tu hogar</span>
+      </div>
+      <div class="top-bar-auth" id="top-bar-auth-container">
+        <a href="login.html">Iniciar sesión</a>
+        <span>|</span>
+        <a href="registro.html">Registrar usuario</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encabezado de Ancho Completo -->
+  <header class="main-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-logo" aria-label="HuertoHogar Inicio">
+        <img src="assets/img/logo.svg" alt="Logotipo de HuertoHogar - Del campo a tu mesa" />
+      </a>
+
+      <!-- Menú Centrado Obligatorio -->
+      <nav class="main-nav" aria-label="Navegación principal">
+        <ul class="nav-links">
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="index.html#catalogo">Productos</a></li>
+          <li><a href="carrito.html" class="active">Carrito</a></li>
+        </ul>
+      </nav>
+
+      <!-- Indicador Cart  -->
+      <div class="header-actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito actual">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+          <span>Cart (<span class="cart-badge">0</span>)</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- area Principal del Carrito -->
+  <main>
+    <section class="carrito-section">
+      
+      <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+        <p class="section-subtitle">Tu Pedido Actual</p>
+        <h1 class="section-title">Mi Carrito de Compras</h1>
+      </div>
+
+      <!-- Contenedor cuando hay productos: Disposición a Dos Columnas -->
+      <div class="carrito-layout" id="carrito-layout-wrapper">
+        
+        <!-- Columna Principal: Listado de Ítems (<article>) -->
+        <section class="carrito-lista-container" id="carrito-items-container" aria-label="Productos en el carrito">
+          <!-- Renderizado dinámicamente con JavaScript desde localStorage -->
+        </section>
+
+        <!-- Columna de Resumen del Pedido -->
+        <aside class="carrito-resumen" aria-label="Resumen de compra">
+          <h3>Resumen del Pedido</h3>
+
+          <div class="resumen-line">
+            <span>Subtotal estimado:</span>
+            <strong id="resumen-subtotal">$0 CLP</strong>
+          </div>
+
+          <div class="resumen-line descuento" id="resumen-descuento-row" style="display: none;">
+            <span>Descuento cupón:</span>
+            <strong id="resumen-descuento-monto">-$0 CLP</strong>
+          </div>
+
+          <div class="resumen-line">
+            <span>Envío a domicilio:</span>
+            <strong style="color: var(--color-verde); font-weight: 700;">¡GRATIS!</strong>
+          </div>
+
+          <!-- Bloque de Cupón de Descuento -->
+          <div class="cupon-box">
+            <label for="input-cupon">¿Tienes un cupón de descuento?</label>
+            <div class="cupon-input-group">
+              <input type="text" id="input-cupon" placeholder="Ej: HUERTO10" aria-label="Ingresar código de descuento" />
+              <button type="button" id="btn-aplicar-cupon">Aplicar</button>
+            </div>
+            <p class="cupon-feedback" id="cupon-feedback"></p>
+            <small style="display: block; font-size: 0.76rem; color: #777; margin-top: 5px;">
+              Cupones de prueba: <strong>HUERTO10</strong> (10% OFF), <strong>FRESCURA20</strong> (20% OFF).
+            </small>
+          </div>
+
+          <!-- Total Recalculado -->
+          <div class="resumen-line total-line">
+            <span>TOTAL:</span>
+            <span id="resumen-total">$0 CLP</span>
+          </div>
+
+          <!-- Botón de Pago -->
+          <button type="button" class="btn btn-primary btn-block" id="btn-proceder-pago" style="margin-top: 1.5rem; font-size: 1.05rem; padding: 0.9rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+            PAGAR PEDIDO
+          </button>
+        </aside>
+
+      </div>
+
+      <!-- Estado de Carrito Vacío -->
+      <div class="carrito-vacio-card" id="carrito-vacio-container" style="display: none;">
+        <svg class="carrito-vacio-icon" viewBox="0 0 24 24">
+          <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+        <h3>Tu carrito está actualmente vacío</h3>
+        <p>Aún no has agregado productos frescos de nuestra huerta a tu orden. Revisa nuestro catálogo y añade alimentos saludables directo del campo.</p>
+        <a href="index.html#catalogo" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          Volver al Catálogo de Productos
+        </a>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Modal de Confirmación de Pago Simulado -->
+  <div class="modal-backdrop" id="modal-pago" role="dialog" aria-labelledby="modal-pago-titulo" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-icon-success">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <h2 class="modal-title" id="modal-pago-titulo">¡Pago Confirmado con Éxito!</h2>
+      <p style="color: #666; font-size: 0.95rem;">
+        Gracias por elegir HuertoHogar. Tu orden ha sido recibida y nuestro equipo ya está preparando tu cosecha fresca.
+      </p>
+
+      <div class="modal-ticket">
+        <div class="modal-ticket-row">
+          <span>Número de Pedido:</span>
+          <strong id="modal-orden-num">#HH-000000</strong>
+        </div>
+        <div class="modal-ticket-row">
+          <span>Cliente:</span>
+          <span id="modal-cliente-nombre">Camila Silva</span>
+        </div>
+        <div class="modal-ticket-row">
+          <span>Zona de Despacho:</span>
+          <span id="modal-despacho-destino">Santiago (RM)</span>
+        </div>
+        <div class="modal-ticket-row total">
+          <span>Total Pagado:</span>
+          <span id="modal-total-pagado">$0 CLP</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-block" id="btn-cerrar-modal">
+        Aceptar y Volver al Inicio
+      </button>
+    </div>
+  </div>
+
+  <!-- Pie de Página Semántico -->
+  <footer class="main-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4>HuertoHogar</h4>
+        <p>Alimentos frescos de productores chilenos directo a tu casa.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Categorías</h4>
+        <ul>
+          <li><a href="index.html#catalogo">Frutas Frescas</a></li>
+          <li><a href="index.html#catalogo">Verduras Orgánicas</a></li>
+          <li><a href="index.html#catalogo">Miel y Granos</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Puntos de Entrega</h4>
+        <ul>
+          <li><a href="index.html#cobertura">Santiago</a></li>
+          <li><a href="index.html#cobertura">Concepción</a></li>
+          <li><a href="index.html#cobertura">Puerto Montt</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Medios de Pago</h4>
+        <div class="pagos-container">
+          <span class="pago-badge">Webpay Plus</span>
+          <span class="pago-badge">Redcompra</span>
+          <span class="pago-badge">Transferencia</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 HuertoHogar Chile. Carrito con persistencia en localStorage y recálculo en tiempo real.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/carrito.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Usuario | HuertoHogar</title>
+
+  <!-- Tipografías Oficiales -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Hoja de estilos externa -->
+  <link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <div class="top-bar">
+    <div class="top-bar-container">
+      <div class="top-bar-info">
+        <span class="top-bar-tag">HuertoHogar</span>
+        <span>Productos orgánicos directos del campo chileno a tu hogar</span>
+      </div>
+      <div class="top-bar-auth" id="top-bar-auth-container">
+        <a href="login.html">Iniciar sesión</a>
+        <span>|</span>
+        <a href="registro.html">Registrar usuario</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encabezado de Ancho Completo -->
+  <header class="main-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-logo" aria-label="HuertoHogar Inicio">
+        <img src="assets/img/logo.svg" alt="Logotipo de HuertoHogar - Del campo a tu mesa" />
+      </a>
+
+      <!-- Menú Centrado Obligatorio en las 4 páginas -->
+      <nav class="main-nav" aria-label="Navegación principal">
+        <ul class="nav-links">
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="index.html#catalogo">Productos</a></li>
+          <li><a href="carrito.html">Carrito</a></li>
+        </ul>
+      </nav>
+
+      <!-- Indicador Cart (n) -->
+      <div class="header-actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+          <span>Cart (<span class="cart-badge">0</span>)</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Área Principal de Registro -->
+  <main class="auth-page">
+    <section class="form-card" aria-labelledby="titulo-registro">
+      
+      <div class="form-header">
+        <a href="index.html" class="form-header-logo">
+          <img src="assets/img/logo.svg" alt="HuertoHogar Logo" />
+        </a>
+        <h1 id="titulo-registro">Registro de usuario</h1>
+        <p>Crea tu cuenta para comprar y recibir alimentos frescos de agricultores locales.</p>
+      </div>
+
+      <form id="form-registro" novalidate>
+        
+        <!-- Campo: Nombre Completo -->
+        <div class="form-group">
+          <label for="nombre">Nombre completo <span class="req">*</span></label>
+          <input 
+            type="text" 
+            id="nombre" 
+            name="nombre" 
+            class="form-control" 
+            placeholder="Ej: Camila Andrea Silva Morales" 
+            maxlength="50" 
+            autocomplete="name" 
+            required
+          />
+          <small class="form-hint">Obligatorio. Únicamente letras y espacios, máximo 50 caracteres.</small>
+          <span class="error-message" id="error-nombre"></span>
+        </div>
+
+        <!-- Fila de Correos: Correo y Confirmar Correo -->
+        <div class="form-row">
+          <!-- Campo: Correo -->
+          <div class="form-group">
+            <label for="correo">Correo electrónico <span class="req">*</span></label>
+            <input 
+              type="email" 
+              id="correo" 
+              name="correo" 
+              class="form-control" 
+              placeholder="ejemplo@correo.cl" 
+              autocomplete="email" 
+              required
+            />
+            <small class="form-hint">Formato válido y único en el sistema.</small>
+            <span class="error-message" id="error-correo"></span>
+          </div>
+
+          <!-- Campo: Confirmar Correo -->
+          <div class="form-group">
+            <label for="confirmar-correo">Confirmar correo electrónico <span class="req">*</span></label>
+            <input 
+              type="email" 
+              id="confirmar-correo" 
+              name="confirmar-correo" 
+              class="form-control" 
+              placeholder="Reescribe tu correo" 
+              autocomplete="email" 
+              required
+            />
+            <small class="form-hint">Debe ser idéntico al correo ingresado al lado.</small>
+            <span class="error-message" id="error-confirmar-correo"></span>
+          </div>
+        </div>
+
+        <!-- Fila de Contraseñas: Contraseña y Confirmar Contraseña -->
+        <div class="form-row">
+          <!-- Campo: Contraseña -->
+          <div class="form-group">
+            <label for="password">Contraseña <span class="req">*</span></label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="Mínimo 8 caracteres" 
+              autocomplete="new-password" 
+              required
+            />
+            <small class="form-hint">Mínimo 8 caracteres, al menos 1 mayúscula, 1 minúscula, 1 número y 1 símbolo (@#$%!.*).</small>
+            <span class="error-message" id="error-password"></span>
+          </div>
+
+          <!-- Campo: Confirmar Contraseña -->
+          <div class="form-group">
+            <label for="confirmar-password">Confirmar contraseña <span class="req">*</span></label>
+            <input 
+              type="password" 
+              id="confirmar-password" 
+              name="confirmar-password" 
+              class="form-control" 
+              placeholder="Reescribe tu contraseña" 
+              autocomplete="new-password" 
+              required
+            />
+            <small class="form-hint">Debe coincidir exactamente con la contraseña.</small>
+            <span class="error-message" id="error-confirmar-password"></span>
+          </div>
+        </div>
+
+        <!-- Campo: Teléfono (Opcional) -->
+        <div class="form-group">
+          <label for="telefono">Teléfono de contacto (Opcional)</label>
+          <input 
+            type="tel" 
+            id="telefono" 
+            name="telefono" 
+            class="form-control" 
+            placeholder="+56 9 1234 5678 o 912345678" 
+            autocomplete="tel"
+          />
+          <small class="form-hint">Opcional. De completarse, móvil chileno válido (+56 9 XXXX XXXX o 9XXXXXXXX).</small>
+          <span class="error-message" id="error-telefono"></span>
+        </div>
+
+        <!-- Fila de Región y Comuna Dinámica -->
+        <div class="form-row">
+          <!-- Campo: Región -->
+          <div class="form-group">
+            <label for="region">Región <span class="req">*</span></label>
+            <select id="region" name="region" class="form-control" required>
+              <option value="">Cargando regiones...</option>
+            </select>
+            <small class="form-hint">Selecciona tu región de despacho en Chile.</small>
+            <span class="error-message" id="error-region"></span>
+          </div>
+
+          <!-- Campo: Comuna -->
+          <div class="form-group">
+            <label for="comuna">Comuna <span class="req">*</span></label>
+            <select id="comuna" name="comuna" class="form-control" disabled required>
+              <option value="">-- Primero selecciona una región --</option>
+            </select>
+            <small class="form-hint">Comunas disponibles según la región elegida.</small>
+            <span class="error-message" id="error-comuna"></span>
+          </div>
+        </div>
+
+        <!-- Botón de Envío -->
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+          Registrar Usuario
+        </button>
+
+      </form>
+
+      <div class="form-footer">
+        ¿Ya tienes una cuenta en HuertoHogar? <a href="login.html">Inicia sesión aquí</a>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Pie de Página Semántico -->
+  <footer class="main-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4>HuertoHogar</h4>
+        <p>Alimentación fresca y sustentable directo del campo a tu hogar en Chile.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Categorías</h4>
+        <ul>
+          <li><a href="index.html#catalogo">Frutas Frescas</a></li>
+          <li><a href="index.html#catalogo">Verduras Orgánicas</a></li>
+          <li><a href="index.html#catalogo">Granos & Miel</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Puntos de Entrega</h4>
+        <ul>
+          <li><a href="index.html#cobertura">Santiago</a></li>
+          <li><a href="index.html#cobertura">Valparaíso & Viña</a></li>
+          <li><a href="index.html#cobertura">Puerto Montt</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Medios de Pago</h4>
+        <div class="pagos-container">
+          <span class="pago-badge">Webpay</span>
+          <span class="pago-badge">Redcompra</span>
+          <span class="pago-badge">Transferencia</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 HuertoHogar Chile. Formulario de registro con validación JavaScript nativa.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/registro.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión | HuertoHogar</title>
+
+  <!-- Tipografías Oficiales -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Hoja de estilos externa -->
+  <link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <div class="top-bar">
+    <div class="top-bar-container">
+      <div class="top-bar-info">
+        <span class="top-bar-tag">HuertoHogar</span>
+        <span>Productos orgánicos directos del campo chileno a tu hogar</span>
+      </div>
+      <div class="top-bar-auth" id="top-bar-auth-container">
+        <a href="login.html">Iniciar sesión</a>
+        <span>|</span>
+        <a href="registro.html">Registrar usuario</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encabezado de Ancho Completo -->
+  <header class="main-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-logo" aria-label="HuertoHogar Inicio">
+        <img src="assets/img/logo.svg" alt="Logotipo de HuertoHogar - Del campo a tu mesa" />
+      </a>
+
+      <!-- Menú Centrado Obligatorio -->
+      <nav class="main-nav" aria-label="Navegación principal">
+        <ul class="nav-links">
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="index.html#catalogo">Productos</a></li>
+          <li><a href="carrito.html">Carrito</a></li>
+        </ul>
+      </nav>
+
+      <!-- Indicador Cart (n) -->
+      <div class="header-actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+          <span>Cart (<span class="cart-badge">0</span>)</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Área Principal de Inicio de Sesión -->
+  <main class="auth-page">
+    <section class="form-card form-narrow" aria-labelledby="titulo-login">
+      
+      <div class="form-header">
+        <a href="index.html" class="form-header-logo">
+          <img src="assets/img/logo.svg" alt="HuertoHogar Logo" />
+        </a>
+        <h1 id="titulo-login">Iniciar sesión</h1>
+        <p>Ingresa a tu cuenta de HuertoHogar para gestionar tus compras del campo.</p>
+      </div>
+
+      <form id="form-login" novalidate>
+        
+        <!-- Campo: Correo Electrónico -->
+        <div class="form-group">
+          <label for="login-correo">Correo electrónico <span class="req">*</span></label>
+          <input 
+            type="email" 
+            id="login-correo" 
+            name="correo" 
+            class="form-control" 
+            placeholder="ejemplo@correo.cl" 
+            autocomplete="email" 
+            required
+          />
+          <small class="form-hint">Ingresa el correo registrado con tu cuenta.</small>
+          <span class="error-message" id="error-login-correo"></span>
+        </div>
+
+        <!-- Campo: Contraseña -->
+        <div class="form-group">
+          <label for="login-password">Contraseña <span class="req">*</span></label>
+          <input 
+            type="password" 
+            id="login-password" 
+            name="password" 
+            class="form-control" 
+            placeholder="Ingresa tu contraseña" 
+            autocomplete="current-password" 
+            required
+          />
+          <small class="form-hint">Contraseña vinculada a tu cuenta.</small>
+          <span class="error-message" id="error-login-password"></span>
+        </div>
+
+        <!-- Botón de Inicio de Sesión -->
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.8rem;">
+          Iniciar sesión
+        </button>
+
+      </form>
+
+      <!-- Nota de credenciales de prueba preconfiguradas para el docente -->
+      <div style="background-color: #F1F8F4; border: 1px dashed #A5D6A7; border-radius: 8px; padding: 0.85rem; margin-top: 1.4rem; font-size: 0.82rem; color: #2E7D32;">
+        <strong>Credenciales Demo para evaluación:</strong><br>
+        Correo: <code>cliente@huertohogar.cl</code><br>
+        Contraseña: <code>Password2026*</code>
+      </div>
+
+      <div class="form-footer">
+        ¿Aún no tienes cuenta? <a href="registro.html">Regístrate aquí</a>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Pie de Página Semántico -->
+  <footer class="main-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4>HuertoHogar</h4>
+        <p>Alimentos frescos de productores chilenos directo a tu casa.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Categorías</h4>
+        <ul>
+          <li><a href="index.html#catalogo">Frutas Frescas</a></li>
+          <li><a href="index.html#catalogo">Verduras Orgánicas</a></li>
+          <li><a href="index.html#catalogo">Miel y Granos</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Puntos de Entrega</h4>
+        <ul>
+          <li><a href="index.html#cobertura">Santiago</a></li>
+          <li><a href="index.html#cobertura">Concepción</a></li>
+          <li><a href="index.html#cobertura">Puerto Montt</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Medios de Pago</h4>
+        <div class="pagos-container">
+          <span class="pago-badge">Webpay Plus</span>
+          <span class="pago-badge">Redcompra</span>
+          <span class="pago-badge">Transferencia</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 HuertoHogar Chile. Autenticación con persistencia en localStorage.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/login.js"></script>
+</body>
+</html>
+

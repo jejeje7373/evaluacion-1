@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 70" width="320" height="70" role="img" aria-label="Logotipo de HuertoHogar">
+  <defs>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3CB371" />
+      <stop offset="100%" stop-color="#2E8B57" />
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE066" />
+      <stop offset="100%" stop-color="#FFD700" />
+    </linearGradient>
+  </defs>
+  <!-- Sol campestre -->
+  <circle cx="34" cy="35" r="26" fill="url(#sunGrad)" opacity="0.25" />
+  <circle cx="34" cy="35" r="20" fill="none" stroke="#FFD700" stroke-width="2" stroke-dasharray="3 3" />
+  
+  <!-- Cesta / Huerto base -->
+  <path d="M 18 36 Q 34 52 50 36 L 46 44 Q 34 56 22 44 Z" fill="#8B4513" />
+  
+  <!-- Hojas verdes frescas -->
+  <path d="M 34 38 C 22 28 20 14 34 10 C 37 20 36 28 34 38 Z" fill="url(#leafGrad)" />
+  <path d="M 34 38 C 46 28 48 14 34 10 C 40 22 36 30 34 38 Z" fill="#246B43" />
+  <path d="M 34 38 C 24 35 15 22 26 18 C 30 26 32 33 34 38 Z" fill="#48C774" opacity="0.9" />
+  <path d="M 34 38 C 44 35 53 22 42 18 C 38 26 36 33 34 38 Z" fill="#2E8B57" />
+  
+  <!-- Texto HuertoHogar -->
+  <text x="68" y="38" font-family="'Playfair Display', Georgia, serif" font-size="28" font-weight="bold" fill="#2E8B57" letter-spacing="0.5">Huerto<tspan fill="#8B4513">Hogar</tspan></text>
+  <text x="70" y="53" font-family="'Montserrat', sans-serif" font-size="9.5" font-weight="600" fill="#666666" letter-spacing="2.2">DEL CAMPO A TU MESA</text>
+</svg>
+

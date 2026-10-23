@@ -1,0 +1,20 @@
+# Dependencias de Node (no se suben a Git)
+node_modules/
+
+# Archivos de compilación y temporales
+dist/
+dist-ssr/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Configuración local de editores
+.vscode/
+.idea/
+.DS_Store
+
+# Archivos privados
+EXPLICACION_CODIGO.md
