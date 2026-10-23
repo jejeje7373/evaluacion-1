@@ -2,115 +2,303 @@
 ## Sistema de Comercio Electrónico "HuertoHogar"
 
 - **Asignatura:** Desarrollo de Software Web (DSY1104)
-- **Evaluación:** Evaluación Formativa N.° 1 — Creando mi primera tienda web
+- **Evaluación:** Evaluación N.° 2 — Frontend Moderno en JavaScript, CRUD y Pruebas Unitarias
 - **Institución:** Duoc UC — Escuela de Informática y Telecomunicaciones
 - **Caso:** Forma A — HuertoHogar
-- **Versión:** 1.0.0
-- **Fecha:** Septiembre 2026
+- **Versión:** 2.0.0
+- **Fecha:** Octubre 2026
 
 ---
 
 ## 1. INTRODUCCIÓN
 
 ### 1.1. Propósito
-El presente documento describe la Especificación de Requisitos de Software (ERS) para el desarrollo de la plataforma web de la tienda en línea **HuertoHogar**, especializada en la comercialización y distribución de productos agrícolas frescos y sostenibles directamente desde productores locales chilenos hasta el consumidor final.
+El presente documento describe la Especificación de Requisitos de Software (ERS) para la plataforma web de comercio electrónico **HuertoHogar**, especializada en la venta y distribución de productos agrícolas frescos y sostenibles directamente desde productores locales chilenos hasta el consumidor final.
 
 ### 1.2. Alcance del Proyecto
-La aplicación consta de cuatro vistas web interconectadas (`index.html`, `registro.html`, `login.html`, `carrito.html`), desarrolladas bajo estándares modernos de desarrollo frontend sin servidor (arquitectura estática cliente-servidor simulada):
-- Uso estricto de HTML5 semántico.
-- Hoja de estilo CSS única, centralizada y adaptativa (responsive design).
-- Validaciones en el cliente mediante JavaScript nativo (vanilla JS).
-- Persistencia integral de estado, sesiones y compras en `localStorage`.
+La aplicación implementa una arquitectura Single Page Application (SPA) modular construida con **React 18** y estilos responsivos mediante **Bootstrap 5**, asegurando persistencia de estado en `localStorage`, un panel administrativo con **CRUD completo de productos**, y una suite de pruebas unitarias verificadas con **Jasmine y Karma**.
+
+El sistema integra cinco vistas funcionales interconectadas:
+1. **Vista de Catálogo e Inicio:** Portada (*Hero banner*), buscador reactivo, filtros por categoría y catálogo interactivo de productos.
+2. **Vista de Carrito de Compras:** Gestión de unidades, cálculo automático de subtotales, cupones de descuento porcentual, cálculo de despacho dinámico y simulación de checkout.
+3. **Vista de Inicio de Sesión (Login):** Validación de credenciales para clientes y administradores con discriminación de errores.
+4. **Vista de Registro de Usuarios:** Formulario con selector geográfico dependiente (Región y Comunas de Chile) y validaciones en tiempo real.
+5. **Vista de Panel de Administración (CRUD de Productos):** Vista protegida por rol de administrador para la creación, lectura, actualización y eliminación de artículos del inventario.
 
 ---
 
-## 2. DESCRIPCIÓN GENERAL
+## 2. DESCRIPCIÓN GENERAL Y ROLES
 
 ### 2.1. Perspectiva del Producto
-HuertoHogar opera de forma autónoma en el navegador del cliente. Al no existir servidor backend en esta etapa inicial del proyecto, todas las operaciones de registro de usuarios, autenticación, gestión del catálogo y almacenamiento del carrito se ejecutan en el entorno de ejecución del cliente utilizando las APIs de almacenamiento web (`localStorage` y `sessionStorage`).
+HuertoHogar opera como una aplicación web moderna del lado del cliente. La navegación entre pantallas se realiza dinámicamente mediante el estado de React (`activeView`), garantizando una experiencia fluida sin recargas de página completas (*zero page refresh*). La persistencia de datos (productos, usuarios registrados, sesión y carrito) reside en el `localStorage` del navegador y es servida para producción mediante un servidor Node.js (Express) en Amazon EC2 o de forma estática en Amazon S3.
 
-### 2.2. Características de los Usuarios
-- **Visitante / Comprador:** Usuario que navega por el catálogo de productos agrícolas, visualiza información de origen, agrega productos al carro, aplica cupones de descuento y simula el pago de su orden.
-- **Usuario Registrado:** Usuario que dispone de una cuenta con sus datos geográficos de despacho (región y comuna) y credenciales de acceso seguras.
-
-### 2.3. Restricciones Técnicas
-1. **HTML5 Semántico:** Obligación de usar `<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<footer>` sin reemplazarlos por contenedores genéricos (`<div>`).
-2. **Estilos Centralizados:** Todo el diseño debe residir en un único archivo `assets/css/estilos.css`. Prohibido el uso de estilos en línea en el conjunto del sitio.
-3. **Persistencia:** Cuentas, sesión y carrito deben sobrevivir a recargas del navegador mediante `localStorage`.
-4. **Validaciones Específicas:** Errores informados junto al campo respectivo y no mediante alertas genéricas.
-5. **Entorno de Red:** La solución es completamente funcional de manera local o alojada en cualquier servidor estático (GitHub Pages / Live Server).
+### 2.2. Roles de Usuario
+- **Visitante (Invitado):** Puede explorar el catálogo, buscar y filtrar productos, agregar artículos al carrito, registrarse o iniciar sesión.
+- **Cliente Registrado:** Dispone de sesión activa, datos geográficos de despacho, acceso al carrito con descuentos y simulación de compra.
+- **Administrador:** Dispone de privilegios elevados (`rol: 'admin'`). Accede de forma exclusiva al Panel de Administración para gestionar el CRUD de productos (inventario, precios, stock y nuevos productos agrícolas).
 
 ---
 
-## 3. REQUISITOS ESPECÍFICOS
+## 3. DIAGRAMAS DE FLUJO DE NAVEGACIÓN Y VISTAS
 
-### 3.1. Requisitos Funcionales (RF)
+### 3.1. Diagrama Global de Navegación del Sistema
+
+El siguiente diagrama modela el mapa de navegación entre todas las vistas de la aplicación, detallando las transiciones según el estado y rol del usuario:
+
+```mermaid
+flowchart TD
+    Inicio([Inicio de Aplicación]) --> Navbar["Barra de Navegación (Navbar)"]
+
+    Navbar -->|"Clic en Catálogo / Logo"| VistaCatalogo["Vista 1: Inicio y Catálogo (Hero + ProductList)"]
+    Navbar -->|"Clic en Carrito (Badge N)"| VistaCarrito["Vista 2: Carrito de Compras (Cart)"]
+
+    Navbar -->|Usuario no autenticado| AuthInvitado{"Estado de Sesión"}
+    AuthInvitado -->|"Clic en Iniciar Sesión"| VistaLogin["Vista 3: Inicio de Sesión (LoginForm)"]
+    AuthInvitado -->|"Clic en Registro"| VistaRegistro["Vista 4: Registro de Usuario (RegisterForm)"]
+
+    Navbar -->|Usuario autenticado| AuthConectado{"Rol de Usuario"}
+    AuthConectado -->|Rol Cliente| OpcionesCliente["Ver Saludo + Botón Cerrar Sesión"]
+    AuthConectado -->|Rol Administrador| OpcionesAdmin["Ver Saludo + Enlace Panel Admin + Cerrar Sesión"]
+
+    OpcionesAdmin -->|"Clic en Panel Admin"| VistaAdmin["Vista 5: Panel Admin CRUD (AdminProducts)"]
+
+    VistaLogin -->|"Login Exitoso (Rol Cliente)"| VistaCatalogo
+    VistaLogin -->|"Login Exitoso (Rol Admin)"| VistaAdmin
+    VistaLogin -->|"Clic en ¿No tienes cuenta?"| VistaRegistro
+
+    VistaRegistro -->|"Registro Exitoso"| VistaCatalogo
+    VistaRegistro -->|"Clic en ¿Ya tienes cuenta?"| VistaLogin
+
+    VistaCarrito -->|"Clic en Seguir Comprando"| VistaCatalogo
+    VistaCarrito -->|"Finalizar Compra (Orden generada)"| VistaCarrito
+
+    VistaAdmin -->|"Clic en Volver a la Tienda"| VistaCatalogo
+    OpcionesCliente -->|"Clic en Cerrar Sesión"| VistaCatalogo
+    OpcionesAdmin -->|"Clic en Cerrar Sesión"| VistaCatalogo
+```
+
+---
+
+### 3.2. Flujo de la Vista 1: Inicio y Catálogo (`ProductList.jsx` y `ProductCard.jsx`)
+
+La vista principal organiza la experiencia del comprador mediante búsqueda, filtros y selección de unidades:
+
+```mermaid
+flowchart TD
+    EntradaV1["Usuario ingresa a Vista Catálogo"] --> BannerHero["Visualización Hero Banner y Beneficios"]
+    BannerHero --> GrillaProductos["Renderizado del Catálogo de Productos"]
+
+    GrillaProductos --> AccionUsuario{"Acción del Usuario"}
+
+    AccionUsuario -->|"Escribe en barra de búsqueda"| FiltroTexto["Filtrado reactivo por nombre, origen o descripción"]
+    AccionUsuario -->|"Selecciona botón de categoría"| FiltroCategoria["Filtrado por Frutas, Verduras u Orgánicos"]
+    AccionUsuario -->|"Interacción en Tarjeta (ProductCard)"| ControlCard["Ajustar Cantidad (+ / -)"]
+
+    FiltroTexto --> ActualizaGrilla["DOM actualiza tarjetas coincidentes"]
+    FiltroCategoria --> ActualizaGrilla
+
+    ControlCard --> ValidaStock{"¿Cantidad menor o igual a stock?"}
+    ValidaStock -->|Sí| ActualizaCantidad["Actualiza estado local de cantidad"]
+    ValidaStock -->|No| DeshabilitaBoton["Deshabilita botón (+) por límite de stock"]
+
+    ActualizaCantidad --> ClicAgregar["Clic en Agregar al Carrito"]
+    ClicAgregar --> CallbackPadre["Invoca onAddToCart(producto, cantidad)"]
+    CallbackPadre --> ActualizaGlobal["App actualiza cartItems y sincroniza localStorage"]
+    ActualizaGlobal --> FeedbackDOM["DOM muestra alerta de confirmación e incrementa badge en Navbar"]
+```
+
+---
+
+### 3.3. Flujo de la Vista 2: Carrito de Compras (`Cart.jsx`)
+
+Esta vista gestiona los cálculos financieros, promociones y simulación de compra:
+
+```mermaid
+flowchart TD
+    EntradaV2["Usuario accede a Vista Carrito"] --> EstadoCarro{"¿cartItems.length > 0?"}
+
+    EstadoCarro -->|No| CarritoVacio["DOM muestra vista vacía con botón 'Explorar Catálogo'"]
+    CarritoVacio -->|"Clic en Explorar"| IrCatalogo["Redirige a Vista Catálogo"]
+
+    EstadoCarro -->|Sí| RenderTabla["Renderizado de tabla con productos, cantidades y subtotales"]
+    RenderTabla --> AccionCarrito{"Acción en Carrito"}
+
+    AccionCarrito -->|"Pulsar botón (+) o (-)"| ModificarCantidad["Invoca onUpdateQuantity(codigo, nuevaCantidad)"]
+    AccionCarrito -->|"Pulsar botón eliminar (papelera)"| EliminarItem["Invoca onRemoveItem(codigo)"]
+    AccionCarrito -->|"Pulsar Vaciar Carrito"| VaciarCarro["Invoca onClearCart()"]
+    AccionCarrito -->|"Ingresar código de cupón"| ValidarCupon{"¿Cupón HOGAR10 o FRESCO15?"}
+
+    ValidarCupon -->|Válido| AplicaDescuento["Aplica 10% o 15% de descuento al subtotal"]
+    ValidarCupon -->|Inválido| ErrorCupon["DOM muestra alerta de cupón no válido"]
+
+    AplicaDescuento --> CalculoEnvio{"¿Subtotal mayor o igual a $20.000?"}
+    ErrorCupon --> CalculoEnvio
+
+    CalculoEnvio -->|Sí| EnvioGratis["Costo de despacho: Gratis ($0)"]
+    CalculoEnvio -->|No| EnvioFijo["Costo de despacho: $2.500 CLP"]
+
+    EnvioGratis --> TotalFinal["Recálculo reactivo del Total a Pagar"]
+    EnvioFijo --> TotalFinal
+
+    TotalFinal --> Checkout["Clic en 'Finalizar Compra y Simular Pago'"]
+    Checkout --> GeneraOrden["Genera código único HH-XXXXXX y comprobante"]
+    GeneraOrden --> AlertaExito["DOM muestra alerta de éxito con número de orden y vacía el carro"]
+```
+
+---
+
+### 3.4. Flujo de la Vista 3: Inicio de Sesión (`LoginForm.jsx`)
+
+Controla la autenticación del usuario discriminando entre clientes y administradores:
+
+```mermaid
+flowchart TD
+    EntradaLogin["Usuario accede a Vista Iniciar Sesión"] --> FormularioLogin["DOM renderiza campos Email, Contraseña y Submit"]
+    FormularioLogin --> ClicSubmit["Usuario presiona 'Ingresar'"]
+
+    ClicSubmit --> ValidaCampos{"¿Campos vacíos o formato inválido?"}
+    ValidaCampos -->|Sí| ErrorFormato["DOM muestra alerta con error específico"]
+
+    ValidaCampos -->|No| CompruebaCredenciales{"Verificación en usuarios registrados y cuentas del sistema"}
+
+    CompruebaCredenciales -->|Credenciales Incorrectas| ErrorAuth["DOM muestra 'Credenciales inválidas'"]
+    CompruebaCredenciales -->|Credenciales Correctas| EvaluaRol{"¿Rol del usuario autenticado?"}
+
+    EvaluaRol -->|Rol 'cliente'| SesionCliente["Guarda sesión en localStorage y redirige a Vista Catálogo"]
+    EvaluaRol -->|Rol 'admin'| SesionAdmin["Guarda sesión en localStorage y redirige a Vista Panel Admin"]
+
+    FormularioLogin -->|"Clic en 'Regístrate aquí'"| IrRegistro["Redirige a Vista Registro"]
+```
+
+---
+
+### 3.5. Flujo de la Vista 4: Registro de Usuarios (`RegisterForm.jsx`)
+
+Valida la creación de cuentas e implementa la dependencia geográfica chilena:
+
+```mermaid
+flowchart TD
+    EntradaRegistro["Usuario accede a Vista Registro"] --> FormularioReg["DOM renderiza formulario de inscripción"]
+    FormularioReg --> SelectorRegion["Usuario selecciona Región de Chile"]
+
+    SelectorRegion --> CargaComunas["DOM desbloquea y carga comunas correspondientes a esa región"]
+    CargaComunas --> CompletaDatos["Usuario completa Nombre, Email, Password, Comuna y Dirección"]
+
+    CompletaDatos --> CheckboxTerminos{"¿Acepta términos y condiciones?"}
+    CheckboxTerminos -->|No| MarcaErrorTerminos["DOM muestra validación obligatoria en términos"]
+
+    CheckboxTerminos -->|Sí| ClicRegistrar["Usuario pulsa 'Registrarse'"]
+    ClicRegistrar --> ValidaReglas{"Validación de reglas: Nombre >= 3, Password >= 6, Passwords iguales"}
+
+    ValidaReglas -->|Falla regla| ErroresCampos["DOM destaca inputs con clase is-invalid y mensaje de error"]
+    ValidaReglas -->|Cumple todas| GuardaUsuario["Almacena nuevo usuario en huertohogar_usuarios (localStorage)"]
+
+    GuardaUsuario --> ConfirmaRegistro["DOM muestra alerta de '¡Registro exitoso!'"]
+    ConfirmaRegistro --> AutoLogin["Inicia sesión automáticamente y redirige a Vista Catálogo"]
+
+    FormularioReg -->|"Clic en 'Inicia sesión aquí'"| IrLogin["Redirige a Vista Login"]
+```
+
+---
+
+### 3.6. Flujo de la Vista 5: Panel de Administración CRUD (`AdminProducts.jsx`)
+
+Gestiona el ciclo de vida completo de los productos agrícolas bajo control de acceso estricto:
+
+```mermaid
+flowchart TD
+    EntradaAdmin["Usuario intenta acceder a Vista Panel Admin"] --> VerificaAdmin{"¿currentUser.rol === 'admin'?"}
+
+    VerificaAdmin -->|No (Invitado o Cliente)| AccesoDenegado["DOM bloquea vista y muestra alerta 'Acceso Restringido'"]
+    AccesoDenegado --> BotonIrLogin["Botón para redirigir a Login"]
+
+    VerificaAdmin -->|Sí (Administrador)| RenderPanelAdmin["DOM renderiza Formulario de Gestión y Tabla de Inventario"]
+
+    RenderPanelAdmin --> OperacionCRUD{"Operación Seleccionada"}
+
+    %% CREATE
+    OperacionCRUD -->|"Llenar formulario y 'Guardar Nuevo Producto'"| OperacionCreate["CREATE: Valida código único, campos y valores positivos"]
+    OperacionCreate --> ValidaCodigo{"¿Código ya existe en catálogo?"}
+    ValidaCodigo -->|Sí| ErrorCodigo["DOM muestra 'Código ya existe en catálogo'"]
+    ValidaCodigo -->|No| AgregaProducto["Agrega producto al estado, persiste en localStorage y actualiza tabla"]
+
+    %% READ
+    OperacionCRUD -->|"Escribir en buscador o selector de categoría"| OperacionRead["READ: Filtra dinámicamente filas de la tabla en tiempo real"]
+
+    %% UPDATE
+    OperacionCRUD -->|"Clic en botón 'Editar' en una fila"| OperacionUpdate["UPDATE: Precarga datos en formulario y bloquea campo código"]
+    OperacionUpdate --> ModificaValores["Admin modifica precio, stock o descripción y pulsa 'Actualizar'"]
+    ModificaValores --> GuardaUpdate["Actualiza producto en catálogo, sincroniza carrito y guarda en localStorage"]
+
+    %% DELETE
+    OperacionCRUD -->|"Clic en botón 'Borrar' en una fila"| OperacionDelete["DELETE: Ventana de confirmación window.confirm"]
+    OperacionDelete --> ConfirmaBorrado{"¿Confirma eliminación?"}
+    ConfirmaBorrado -->|Sí| EliminaProducto["Elimina producto del catálogo, limpia carrito y actualiza tabla"]
+    ConfirmaBorrado -->|No| CancelaBorrado["Mantiene producto sin cambios"]
+
+    %% RESET
+    OperacionCRUD -->|"Clic en 'Restablecer Catálogo'"| Restablece["Restaura los 8 productos oficiales maestros en localStorage"]
+```
+
+---
+
+## 4. ESPECIFICACIÓN DE REQUISITOS ESPECÍFICOS
+
+### 4.1. Requisitos Funcionales (RF)
 
 | Código | Módulo | Descripción del Requisito Funcional |
 | :--- | :--- | :--- |
-| **RF-01** | Global | El encabezado de ancho completo debe desplegar el logotipo de HuertoHogar, navegación principal y el indicador `Cart (n)` actualizado en tiempo real según el contenido de `localStorage`. |
-| **RF-02** | Global | La barra superior debe mostrar los accesos de "Iniciar sesión" y "Registrar usuario", o bien el saludo al usuario activo con opción de "Cerrar sesión". |
-| **RF-03** | Inicio | La portada (Hero) debe estructurarse a dos columnas con título, texto de valor, botón hacia el catálogo e imagen representativa con atributo `alt` descriptivo. |
-| **RF-04** | Inicio | El catálogo debe renderizar los ocho (8) productos oficiales del caso en elementos semánticos `<article>`, mostrando código, imagen, nombre, atributo, precio en CLP y botón de adición al carro. |
-| **RF-05** | Inicio | Debe incluirse una sección con video embebido (`<video>` o `iframe`) capaz de reproducirse correctamente en el navegador. |
-| **RF-06** | Inicio | El pie de página (`<footer>`) debe incluir el nombre de la tienda, tres categorías, mención a medios de pago chilenos y un formulario de boletín funcional. |
-| **RF-07** | Registro | El formulario de registro debe validar obligatoriedad, letras y espacios en Nombre completo (máx. 50 caracteres). |
-| **RF-08** | Registro | El formulario de registro debe verificar el formato de correo electrónico y validar su unicidad respecto a cuentas previas en `localStorage`. |
-| **RF-09** | Registro | El formulario de registro debe exigir confirmación exacta de correo electrónico y contraseña. |
-| **RF-10** | Registro | La contraseña debe exigir mínimo 8 caracteres, al menos 1 mayúscula, 1 minúscula, 1 número y 1 símbolo especial (`@#$%!.*`). |
-| **RF-11** | Registro | El teléfono debe ser opcional, pero de ingresarse, validar formato de móvil chileno (`+56 9 XXXX XXXX` o `9XXXXXXXX`). |
-| **RF-12** | Registro | El selector de regiones debe contener mínimo 3 regiones y actualizar dinámicamente el selector de comunas asociadas (mínimo 2 por región). |
-| **RF-13** | Login | El login debe discriminar y reportar el origen exacto del error: si la cuenta no existe o si la contraseña es incorrecta (no error genérico). |
-| **RF-14** | Carrito | La vista de carrito debe listar cada producto en un `<article>` con imagen, precio unitario, controles `[-]`, `[cantidad]`, `[+]` y eliminar automáticamente el producto si la cantidad llega a cero. |
-| **RF-15** | Carrito | El resumen debe recalcular subtotales y total en tiempo real, admitir cupones válidos (`HUERTO10`) con descuento porcentual, y simular el checkout con comprobante de orden y vaciado de carro. |
-| **RF-16** | Carrito | Si el carrito está vacío, debe informar claramente el estado con botón directo de retorno al catálogo sin dejar la vista en blanco. |
+| **RF-01** | Navegación | La barra de navegación debe adaptarse de forma responsiva, incluir menú colapsable para dispositivos móviles, badge dinámico con el total de ítems en el carro y enlaces contextuales según autenticación. |
+| **RF-02** | Catálogo | El catálogo debe renderizar los productos agrícolas registrados, permitiendo filtrar por categoría (*Frutas Frescas*, *Verduras Orgánicas*, *Productos Orgánicos*) y realizar búsquedas por texto en tiempo real. |
+| **RF-03** | Tarjeta Producto | Cada tarjeta debe presentar precio en CLP formateado, origen geográfico, stock actual, control reactivo de cantidad (+/-) impidiendo exceder el inventario, y botón de agregado al carro con notificación visual. |
+| **RF-04** | Carrito | La vista de carrito debe listar cada producto con imagen, precio unitario, controles de cantidad, eliminación directa de ítems, cálculo reactivo de subtotal, costo de envío y monto final. |
+| **RF-05** | Descuentos | El sistema debe validar cupones de descuento oficiales (`HOGAR10` para 10% y `FRESCO15` para 15%), aplicando el descuento al subtotal y rechazando cupones inválidos con retroalimentación visual en el DOM. |
+| **RF-06** | Despacho Dinámico | Las compras con subtotal igual o superior a $20.000 CLP contarán con costo de envío gratis; compras inferiores aplicarán un costo de $2.500 CLP. |
+| **RF-07** | Checkout Simulado | El carrito debe permitir simular la finalización de compra, emitiendo un número de orden único (`HH-XXXXXX`), confirmación visual en el DOM y vaciado automático de los artículos adquiridos. |
+| **RF-08** | Autenticación | El sistema debe validar correos mediante expresiones regulares (Regex), comprobar contraseñas y autenticar usuarios demo de cliente (`cliente@huertohogar.cl`) y administrador (`admin@huertohogar.cl`). |
+| **RF-09** | Registro y Select Dependiente | El formulario de registro debe cargar dinámicamente las comunas de Chile correspondientes a la región seleccionada, exigir coincidencia estricta de contraseñas y aceptación de términos. |
+| **RF-10** | Control de Acceso (RBAC) | El acceso a la vista del Panel de Administración y el botón "Panel Admin" en la barra de navegación deben restringirse estrictamente a usuarios con rol `admin`. |
+| **RF-11** | CRUD - Creación | El administrador debe poder registrar nuevos productos con validación de código único, nombre, precio positivo, stock mayor o igual a 0, procedencia y descripción. |
+| **RF-12** | CRUD - Edición | El administrador debe poder editar cualquier producto existente, precargando sus datos en el formulario y actualizando el inventario tanto en el panel como en la tienda de clientes. |
+| **RF-13** | CRUD - Eliminación | El administrador debe poder dar de baja productos previa confirmación, retirándolos de la base de datos local y sincronizando el catálogo. |
+| **RF-14** | Persistencia Local | El catálogo de productos, el carrito de compras, los usuarios registrados y la sesión activa deben persistir en `localStorage` entre recargas de navegador. |
 
 ---
 
-### 3.2. Requisitos No Funcionales (RNF)
+### 4.2. Requisitos No Funcionales (RNF)
 
 | Código | Dimensión | Descripción del Requisito No Funcional |
 | :--- | :--- | :--- |
-| **RNF-01** | Semántica | El marcado HTML debe ajustarse a las directrices de accesibilidad y semántica HTML5 sin anidar contenedores genéricos sustitutos. |
-| **RNF-02** | Diseño Visual | Se debe implementar la paleta oficial de HuertoHogar: Blanco Suave (`#F7F7F7`), Verde Esmeralda (`#2E8B57`), Amarillo Mostaza (`#FFD700`), Marrón Claro (`#8B4513`), Gris Oscuro (`#333333`) y Gris Medio (`#666666`). |
-| **RNF-03** | Tipografía | Se deben cargar tipografías limpias vía Google Fonts: *Montserrat* para cuerpo de texto y *Playfair Display* para encabezados. |
-| **RNF-04** | Responsive | El diseño debe implementar `@media (max-width: 768px)` donde la portada pase a 1 columna y el catálogo no se comprima a 4 columnas. |
-| **RNF-05** | Unidades | El código CSS debe utilizar al menos dos unidades de medida distintas (`rem` para textos y espaciados, `px` para bordes y radios). |
-| **RNF-06** | Usabilidad | Cada campo de formulario debe contar con etiquetas `<label for="...">` asociadas, sugerencia de formato visible y mensajes de error junto al campo. |
-| **RNF-07** | Rendimiento | Carga ultra rápida sin dependencias pesadas ni frameworks, ejecutando JavaScript nativo optimizado. |
-| **RNF-08** | Versionamiento | El proyecto debe gestionarse con Git con commits descriptivos en español. |
+| **RNF-01** | Framework Frontend | La interfaz debe desarrollarse en **React 18** utilizando componentes funcionales con Hooks (`useState`, `useEffect`) y compilación optimizada con **Vite**. |
+| **RNF-02** | Diseño Responsivo | Se debe emplear **Bootstrap 5** (sistema de grilla Flexbox de 12 columnas) adaptándose fluidamente a pantallas móviles (`<576px`), tablets (`768px-991px`) y monitores (`>=992px`). |
+| **RNF-03** | Iconografía Limpia | La interfaz no debe contener emojis como iconos de navegación o acción; todos los símbolos gráficos deben provenir de la librería vectorial oficial **Bootstrap Icons (`bi bi-*`)**. |
+| **RNF-04** | Calidad y Pruebas Unitarias | El software debe contar con pruebas unitarias automatizadas ejecutadas mediante **Jasmine y Karma** en **Chrome Headless**, cubriendo lógica, eventos y manipulación del DOM con 100% de tasa de aprobación. |
+| **RNF-05** | Servidor de Despliegue | El proyecto debe incluir un script de servidor **Node.js con Express** (`server.js`) configurado en el puerto 3000 para despliegue en instancias **Amazon EC2**, así como soporte de hosting estático en **Amazon S3**. |
+| **RNF-06** | Rendimiento y Empaquetado | Los assets estáticos en producción (`dist/`) deben servirse minificados y comprimidos, con rutas relativas (`base: './'`) para portabilidad entre dominios. |
+| **RNF-07** | Control de Versiones | El código fuente debe gestionarse en un repositorio público de Git (**GitHub**) con commits descriptivos y ramas principales sincronizadas. |
 
 ---
 
-## 4. MODELO DE DATOS EN `localStorage`
+## 5. MODELO DE DATOS EN `localStorage`
 
-### 4.1. Estructura de Usuarios (`huerto_usuarios`)
+### 5.1. Catálogo de Productos (`huertohogar_productos`)
 ```json
 [
   {
-    "nombre": "Camila Silva",
-    "correo": "cliente@huertohogar.cl",
-    "password": "Password2026*",
-    "telefono": "+56 9 8765 4321",
-    "region": "Región Metropolitana",
-    "comuna": "Santiago",
-    "fechaRegistro": "2026-09-08T04:30:00.000Z"
+    "codigo": "FR001",
+    "nombre": "Manzanas Fuji",
+    "categoria": "Frutas Frescas",
+    "precio": 1200,
+    "unidad": "kilo",
+    "stock": 150,
+    "atributo": "Valle del Maule",
+    "descripcion": "Manzanas Fuji crujientes y dulces, cultivadas en el Valle del Maule.",
+    "imagen": "assets/img/manzanas.svg"
   }
 ]
 ```
 
-### 4.2. Estructura de Sesión Activa (`huerto_usuario_activo`)
-```json
-{
-  "nombre": "Camila Silva",
-  "correo": "cliente@huertohogar.cl",
-  "region": "Región Metropolitana",
-  "comuna": "Santiago",
-  "loginTimestamp": "2026-09-08T04:35:00.000Z"
-}
-```
-
-### 4.3. Estructura de Carrito de Compras (`huerto_carrito`)
+### 5.2. Carrito de Compras (`huertohogar_cart`)
 ```json
 [
   {
@@ -118,37 +306,25 @@ HuertoHogar opera de forma autónoma en el navegador del cliente. Al no existir 
     "nombre": "Manzanas Fuji",
     "precio": 1200,
     "unidad": "kilo",
-    "descripcion": "Manzanas Fuji crujientes y dulces...",
-    "imagen": "assets/img/manzanas.svg",
-    "cantidad": 3
-  },
-  {
-    "codigo": "PO001",
-    "nombre": "Miel Orgánica",
-    "precio": 5000,
-    "unidad": "frasco de 500g",
-    "descripcion": "Miel pura y orgánica producida...",
-    "imagen": "assets/img/miel.svg",
-    "cantidad": 1
+    "cantidad": 2,
+    "imagen": "assets/img/manzanas.svg"
   }
 ]
 ```
 
----
-
-## 5. CATÁLOGO MAESTRO DE PRODUCTOS (8 ÍTEMS)
-
-1. **FR001 - Manzanas Fuji:** $1.200 CLP/kilo. Stock: 150 kilos. Origen: Valle del Maule.
-2. **FR002 - Naranjas Valencia:** $1.000 CLP/kilo. Stock: 200 kilos. Atributo: Ricas en Vitamina C.
-3. **FR003 - Plátanos Cavendish:** $800 CLP/kilo. Stock: 250 kilos. Atributo: Ricos en Potasio.
-4. **VR001 - Zanahorias Orgánicas:** $900 CLP/kilo. Stock: 100 kilos. Origen: Región de O'Higgins.
-5. **VR002 - Espinacas Frescas:** $700 CLP/bolsa 500g. Stock: 80 bolsas. Atributo: Cultivo Orgánico.
-6. **VR003 - Pimientos Tricolores:** $1.500 CLP/kilo. Stock: 120 kilos. Atributo: Mix Rojo, Amarillo y Verde.
-7. **PO001 - Miel Orgánica:** $5.000 CLP/frasco 500g. Stock: 50 frascos. Atributo: Apicultores Locales.
-8. **PO003 - Quinua Orgánica:** $3.200 CLP/kilo. Stock: 70 kilos. Atributo: Grano Andino Seleccionado.
+### 5.3. Sesión Activa (`huertohogar_session`)
+```json
+{
+  "nombre": "Administrador HuertoHogar",
+  "email": "admin@huertohogar.cl",
+  "rol": "admin",
+  "region": "Región Metropolitana",
+  "comuna": "Santiago"
+}
+```
 
 ---
 
 ## 6. CONCLUSIÓN
-El sistema satisface al 100% las exigencias de la Evaluación Formativa N.° 1 de la asignatura DSY1104, ofreciendo una experiencia visual y funcional robusta, moderna y pedagógicamente justificable.
 
+El sistema **HuertoHogar v2.0.0** cumple con los estándares modernos de desarrollo web profesional: arquitectura modular basada en componentes React, interfaz responsiva con Bootstrap 5 sin emojis informales, panel de administración con CRUD reactivo y seguro, almacenamiento persistente en el navegador y verificación de calidad mediante pruebas unitarias exhaustivas con Jasmine y Karma.
