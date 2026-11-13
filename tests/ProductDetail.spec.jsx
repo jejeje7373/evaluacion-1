@@ -85,4 +85,33 @@ describe('Componente ProductDetail (Página de detalle del producto)', () => {
 
     expect(mockOnAddToCart).toHaveBeenCalledWith(mockProducto, 1);
   });
+
+  it('4. Debe permitir abrir el formulario y reportar una fruta en mal estado', async () => {
+    const mockOnReport = jasmine.createSpy('onReportProduct').and.returnValue(Promise.resolve({ id: 1 }));
+    render(
+      <ProductDetail
+        producto={mockProducto}
+        onBack={mockOnBack}
+        onAddToCart={mockOnAddToCart}
+        onReportProduct={mockOnReport}
+      />
+    );
+
+    const btnOpen = container.querySelector('[data-testid="btn-open-report-modal"]');
+    expect(btnOpen).not.toBeNull();
+    fireClick(btnOpen);
+
+    const form = container.querySelector('[data-testid="product-report-form"]');
+    expect(form).not.toBeNull();
+
+    const submitBtn = container.querySelector('[data-testid="btn-submit-product-report"]');
+    fireClick(submitBtn);
+    await new Promise((r) => setTimeout(r, 30));
+
+    expect(mockOnReport).toHaveBeenCalledWith(jasmine.objectContaining({
+      codigoProducto: 'FR001',
+      nombreProducto: 'Manzanas Fuji',
+      motivo: 'Fruta en mal estado'
+    }));
+  });
 });

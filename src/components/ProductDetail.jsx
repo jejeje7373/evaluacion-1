@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CartIcon from './CartIcon.jsx';
+import { reportarProductoMalEstado, obtenerMensajeError } from '../services/api.js';
 
 /**
  * Componente ProductDetail (Estilo Native Bloom: Gallery Photo Expand)
@@ -18,10 +19,26 @@ export default function ProductDetail({
   onAddToCart, 
   onGoToCart,
   todosLosProductos = [],
-  onSelectRelated
+  onSelectRelated,
+  onReportProduct,
+  openReportInitially = false
 }) {
   const [cantidad, setCantidad] = useState(1);
   const [feedback, setFeedback] = useState('');
+  const [mostrarReporte, setMostrarReporte] = useState(Boolean(openReportInitially));
+  const [motivoReporte, setMotivoReporte] = useState('Fruta en mal estado');
+  const [descripcionReporte, setDescripcionReporte] = useState('');
+  const [enviandoReporte, setEnviandoReporte] = useState(false);
+  const [reporteFeedback, setReporteFeedback] = useState('');
+  const [reporteError, setReporteError] = useState('');
+
+  useEffect(() => {
+    setMostrarReporte(Boolean(openReportInitially));
+    setMotivoReporte('Fruta en mal estado');
+    setDescripcionReporte('');
+    setReporteFeedback('');
+    setReporteError('');
+  }, [producto?.codigo, openReportInitially]);
 
   // Atajos de teclado: Escape para cerrar, Flechas para navegar
   useEffect(() => {
@@ -384,6 +401,107 @@ export default function ProductDetail({
                   )}
                 </motion.div>
               )}
+
+              {/* Botón y formulario para reportar fruta/producto en mal estado */}
+              <div className="mt-3 pt-3 border-top">
+                <button
+                  type="button"
+                  className="btn btn-outline-danger btn-sm d-inline-flex align-items-center"
+                  onClick={() => {
+                    setMostrarReporte((prev) => !prev);
+                    setReporteError('');
+                    setReporteFeedback('');
+                  }}
+                  data-testid="btn-open-report-modal"
+                >
+                  <i className="bi bi-flag me-2"></i>
+                  {mostrarReporte ? 'Ocultar reporte' : 'Reportar fruta en mal estado'}
+                </button>
+
+                {reporteFeedback && (
+                  <div className="alert alert-success py-2 px-3 mt-2 mb-0 small" role="alert" data-testid="product-report-success">
+                    <i className="bi bi-check-circle-fill me-2"></i>{reporteFeedback}
+                  </div>
+                )}
+
+                {mostrarReporte && (
+                  <form
+                    className="mt-3 p-3 bg-light rounded border"
+                    data-testid="product-report-form"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      setReporteError('');
+                      setReporteFeedback('');
+                      setEnviandoReporte(true);
+                      try {
+                        const payload = {
+                          codigoProducto: producto.codigo,
+                          nombreProducto: producto.nombre,
+                          motivo: motivoReporte,
+                          descripcion: descripcionReporte.trim() || 'Reporte enviado desde el catalogo'
+                        };
+                        if (onReportProduct) {
+                          await onReportProduct(payload);
+                        } else {
+                          await reportarProductoMalEstado(payload);
+                        }
+                        setReporteFeedback('Reporte enviado al equipo de Administracion. Gracias por avisarnos.');
+                        setDescripcionReporte('');
+                        setMostrarReporte(false);
+                      } catch (err) {
+                        setReporteError(obtenerMensajeError(err));
+                      } finally {
+                        setEnviandoReporte(false);
+                      }
+                    }}
+                  >
+                    <div className="fw-semibold small text-dark mb-2">
+                      Reportar problema con {producto.nombre}
+                    </div>
+                    {reporteError && (
+                      <div className="alert alert-danger py-1 px-2 small mb-2" data-testid="product-report-error">
+                        {reporteError}
+                      </div>
+                    )}
+                    <div className="mb-2">
+                      <label className="form-label small text-muted mb-1" htmlFor="reportMotivoSelect">Motivo *</label>
+                      <select
+                        id="reportMotivoSelect"
+                        className="form-select form-select-sm"
+                        value={motivoReporte}
+                        onChange={(e) => setMotivoReporte(e.target.value)}
+                        data-testid="select-report-motivo"
+                      >
+                        <option value="Fruta en mal estado">Fruta en mal estado</option>
+                        <option value="Golpeada o aplastada">Golpeada o aplastada</option>
+                        <option value="Maduracion excesiva">Maduracion excesiva</option>
+                        <option value="Peso o calidad distinta">Peso o calidad distinta</option>
+                        <option value="Otro problema">Otro problema</option>
+                      </select>
+                    </div>
+                    <div className="mb-2">
+                      <label className="form-label small text-muted mb-1" htmlFor="reportDescTextarea">Detalle</label>
+                      <textarea
+                        id="reportDescTextarea"
+                        rows="2"
+                        className="form-control form-control-sm"
+                        placeholder="Describe brevemente el estado del producto..."
+                        value={descripcionReporte}
+                        onChange={(e) => setDescripcionReporte(e.target.value)}
+                        data-testid="input-report-descripcion"
+                      ></textarea>
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn btn-danger btn-sm fw-semibold"
+                      disabled={enviandoReporte}
+                      data-testid="btn-submit-product-report"
+                    >
+                      {enviandoReporte ? 'Enviando...' : 'Enviar Reporte'}
+                    </button>
+                  </form>
+                )}
+              </div>
             </motion.div>
           </div>
         </div>

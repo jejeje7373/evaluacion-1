@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar.jsx';
 import Hero from './components/Hero.jsx';
@@ -14,6 +14,12 @@ import AdminProducts from './components/AdminProducts.jsx';
 import Footer from './components/Footer.jsx';
 import OrchardBackground from './components/OrchardBackground.jsx';
 import { CATEGORIAS } from './data/products.js';
+import {
+  ESTACIONES_TEMPORADA,
+  obtenerEstacionActual,
+  obtenerInfoEstacion,
+  seleccionarProductosPorTemporada
+} from './utils/temporada.js';
 import {
   getAuthToken,
   clearAuthToken,
@@ -48,7 +54,10 @@ import {
   obtenerDashboardReportes,
   crearReporte,
   actualizarReporte,
-  eliminarReporte
+  eliminarReporte,
+  listarReportesProductos,
+  actualizarEstadoReporteProducto,
+  eliminarReporteProducto
 } from './services/api.js';
 
 export default function App({ initialView = null, initialUser = null }) {
@@ -65,6 +74,9 @@ export default function App({ initialView = null, initialUser = null }) {
   });
 
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [openReportModal, setOpenReportModal] = useState(false);
+  const [estacionSeleccionada, setEstacionSeleccionada] = useState(() => obtenerEstacionActual());
+  const hasHandledInitialHashRef = useRef(false);
 
   // Estado del catálogo y módulos administrativos (sin datos quemados)
   const [productos, setProductos] = useState([]);
@@ -75,6 +87,7 @@ export default function App({ initialView = null, initialUser = null }) {
   const [usuarios, setUsuarios] = useState([]);
   const [ordenes, setOrdenes] = useState([]);
   const [reportes, setReportes] = useState([]);
+  const [reportesProductos, setReportesProductos] = useState([]);
   const [dashboardStats, setDashboardStats] = useState(null);
   const [cargandoAdmin, setCargandoAdmin] = useState(false);
   const [errorAdmin, setErrorAdmin] = useState('');
@@ -173,7 +186,8 @@ export default function App({ initialView = null, initialUser = null }) {
       const promesas = [
         listarOrdenes(),
         listarReportes(),
-        obtenerDashboardReportes()
+        obtenerDashboardReportes(),
+        listarReportesProductos().catch(() => [])
       ];
       if (esAdmin) {
         promesas.push(listarUsuarios());
@@ -182,8 +196,9 @@ export default function App({ initialView = null, initialUser = null }) {
       setOrdenes(Array.isArray(resultados[0]) ? resultados[0] : []);
       setReportes(Array.isArray(resultados[1]) ? resultados[1] : []);
       setDashboardStats(resultados[2] || null);
+      setReportesProductos(Array.isArray(resultados[3]) ? resultados[3] : []);
       if (esAdmin) {
-        setUsuarios(Array.isArray(resultados[3]) ? resultados[3] : []);
+        setUsuarios(Array.isArray(resultados[4]) ? resultados[4] : []);
       }
     } catch (err) {
       setErrorAdmin(obtenerMensajeError(err, 'Error al cargar datos del panel desde el servidor.'));
@@ -363,14 +378,16 @@ export default function App({ initialView = null, initialUser = null }) {
         registrarVisualizacionProducto(producto.codigo)
           .then((actualizado) => {
             if (actualizado) {
-              setSelectedProduct(actualizado);
+              setSelectedProduct(prev => (prev && prev.codigo === actualizado.codigo ? actualizado : prev));
               setProductos(prev => prev.map(p => p.codigo === actualizado.codigo ? actualizado : p));
             }
           })
           .catch(() => {
             obtenerProductoPorCodigo(producto.codigo)
               .then((detalle) => {
-                if (detalle) setSelectedProduct(detalle);
+                if (detalle) {
+                  setSelectedProduct(prev => (prev && prev.codigo === detalle.codigo ? detalle : prev));
+                }
               })
               .catch(() => {});
           });
@@ -403,17 +420,25 @@ export default function App({ initialView = null, initialUser = null }) {
   useEffect(() => {
     if (typeof window === 'undefined' || initialView) return;
 
-    const initialHash = window.location.hash;
-    if (initialHash.startsWith('#producto-')) {
-      const code = initialHash.replace('#producto-', '');
-      const initialProd = productos.find(p => p.codigo === code);
-      if (initialProd) {
-        setSelectedProduct(initialProd);
-        setActiveView('catalogo');
-        window.history.replaceState({ view: 'catalogo', codigo: code }, '', initialHash);
+    if (!hasHandledInitialHashRef.current) {
+      const initialHash = window.location.hash;
+      if (initialHash.startsWith('#producto-')) {
+        if (productos.length > 0) {
+          hasHandledInitialHashRef.current = true;
+          const code = initialHash.replace('#producto-', '');
+          const initialProd = productos.find(p => p.codigo === code);
+          if (initialProd) {
+            setSelectedProduct(initialProd);
+            setActiveView('catalogo');
+            window.history.replaceState({ view: 'catalogo', codigo: code }, '', initialHash);
+          }
+        }
+      } else {
+        hasHandledInitialHashRef.current = true;
+        if (!window.history.state) {
+          window.history.replaceState({ view: activeView, codigo: null }, '', `#${activeView}`);
+        }
       }
-    } else if (!window.history.state) {
-      window.history.replaceState({ view: activeView, codigo: null }, '', `#${activeView}`);
     }
 
     const handlePopState = (event) => {
@@ -606,40 +631,91 @@ export default function App({ initialView = null, initialUser = null }) {
               onExploreCatalog={() => navigateTo('catalogo')}
             />
 
-            <section className="container my-5">
-              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-                <div>
-                  <h3 className="h4 fw-bold text-dark mb-1">Cosecha Directa de Temporada</h3>
-                  <p className="text-muted small mb-0">Una muestra de nuestros alimentos más frescos del campo chileno</p>
-                </div>
-                <button
-                  className="btn btn-outline-success fw-semibold d-inline-flex align-items-center"
-                  onClick={() => navigateTo('catalogo')}
-                >
-                  <GripIcon size={18} className="me-2" /> Ver Todos los Productos ({productos.length})
-                </button>
-              </div>
+            <section className="container my-5" data-testid="seasonal-harvest-section">
+              {(() => {
+                const infoEstacion = obtenerInfoEstacion(estacionSeleccionada);
+                const productosTemporada = seleccionarProductosPorTemporada(productos, estacionSeleccionada, 4);
+                return (
+                  <>
+                    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+                      <div>
+                        <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
+                          <h3 className="h4 fw-bold text-dark mb-0">Cosecha Directa de Temporada</h3>
+                          <span
+                            className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1"
+                            data-testid="season-active-label"
+                          >
+                            <i className={`bi ${infoEstacion.icono} me-1`}></i>
+                            {infoEstacion.nombre} ({infoEstacion.meses})
+                          </span>
+                        </div>
+                        <p className="text-muted small mb-0">{infoEstacion.descripcion}</p>
+                      </div>
 
-              {cargandoCatalogo ? (
-                <div className="text-center py-5" data-testid="catalog-loading">
-                  <div className="spinner-border text-success mb-2" role="status">
-                    <span className="visually-hidden">Cargando productos...</span>
-                  </div>
-                  <p className="text-muted small mb-0">Cargando productos desde la base de datos...</p>
-                </div>
-              ) : (
-                <div className="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
-                  {productos.slice(0, 4).map(prod => (
-                    <div className="col" key={prod.codigo}>
-                      <ProductCard
-                        producto={prod}
-                        onAddToCart={handleAddToCart}
-                        onViewDetails={handleViewProduct}
-                      />
+                      <div className="d-flex flex-wrap align-items-center gap-2">
+                        <div
+                          className="btn-group btn-group-sm"
+                          role="group"
+                          aria-label="Selector de estacion"
+                          data-testid="season-selector"
+                        >
+                          {ESTACIONES_TEMPORADA.map((est) => {
+                            const activo = est.id === estacionSeleccionada;
+                            return (
+                              <button
+                                key={est.id}
+                                type="button"
+                                className={`btn ${activo ? 'btn-success' : 'btn-outline-success'} fw-semibold d-inline-flex align-items-center`}
+                                onClick={() => setEstacionSeleccionada(est.id)}
+                                aria-pressed={activo}
+                                data-testid={`season-btn-${est.id}`}
+                              >
+                                <i className={`bi ${est.icono} me-1`}></i>
+                                {est.nombre}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <button
+                          className="btn btn-outline-success btn-sm fw-semibold d-inline-flex align-items-center"
+                          onClick={() => navigateTo('catalogo')}
+                        >
+                          <GripIcon size={16} className="me-1" /> Ver Todos ({productos.length})
+                        </button>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    {cargandoCatalogo ? (
+                      <div className="text-center py-5" data-testid="catalog-loading">
+                        <div className="spinner-border text-success mb-2" role="status">
+                          <span className="visually-hidden">Cargando productos...</span>
+                        </div>
+                        <p className="text-muted small mb-0">Cargando productos desde la base de datos...</p>
+                      </div>
+                    ) : (
+                      <div className="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4" data-testid="seasonal-products-grid">
+                        {productosTemporada.map(prod => (
+                          <div className="col" key={`${estacionSeleccionada}-${prod.codigo}`}>
+                            <ProductCard
+                              producto={prod}
+                              onAddToCart={handleAddToCart}
+                              onViewDetails={(p) => {
+                                setOpenReportModal(false);
+                                handleViewProduct(p);
+                              }}
+                              onReportProduct={(p) => {
+                                setOpenReportModal(true);
+                                handleViewProduct(p);
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               <div className="mt-5 p-4 p-md-5 bg-light rounded-4 border text-center shadow-sm">
                 <span className="badge bg-success-subtle text-success border border-success-subtle mb-2 px-3 py-2 rounded-pill fw-semibold">
@@ -674,24 +750,18 @@ export default function App({ initialView = null, initialUser = null }) {
                 productos={productos}
                 categorias={listaNombresCategorias}
                 onAddToCart={handleAddToCart}
-                onViewDetails={handleViewProduct}
+                onViewDetails={(p) => {
+                  setOpenReportModal(false);
+                  handleViewProduct(p);
+                }}
+                onReportProduct={(p) => {
+                  setOpenReportModal(true);
+                  handleViewProduct(p);
+                }}
               />
             )}
           </div>
         )}
-
-        <AnimatePresence>
-          {selectedProduct && (
-            <ProductDetail
-              producto={selectedProduct}
-              onBack={handleBackToCatalog}
-              onAddToCart={handleAddToCart}
-              onGoToCart={() => navigateTo('carrito')}
-              todosLosProductos={productos}
-              onSelectRelated={handleViewProduct}
-            />
-          )}
-        </AnimatePresence>
 
         {/* Ruta Protegida: solo ADMIN autenticado con sesión válida */}
         {activeView === 'admin' && (
@@ -750,10 +820,21 @@ export default function App({ initialView = null, initialUser = null }) {
               onUpdateOrderStatus={handleUpdateOrderStatus}
               onDeleteOrder={handleDeleteOrder}
               reportes={reportes}
+              reportesProductos={reportesProductos}
               dashboardStats={dashboardStats}
               onCreateReport={handleCreateReport}
               onUpdateReport={handleUpdateReport}
               onDeleteReport={handleDeleteReport}
+              onUpdateProductReportStatus={async (id, estado) => {
+                const actualizado = await actualizarEstadoReporteProducto(id, estado);
+                setReportesProductos((prev) => prev.map((r) => (r.id === id ? actualizado : r)));
+                showToast(`Reporte #${id} actualizado a ${estado}.`);
+              }}
+              onDeleteProductReport={async (id) => {
+                await eliminarReporteProducto(id);
+                setReportesProductos((prev) => prev.filter((r) => r.id !== id));
+                showToast(`Reporte #${id} eliminado.`);
+              }}
               onRefreshAll={cargarDatosAdminBackend}
               cargandoAdmin={cargandoAdmin}
               errorAdmin={errorAdmin}
@@ -791,6 +872,26 @@ export default function App({ initialView = null, initialUser = null }) {
       </main>
 
       <Footer />
+
+      <AnimatePresence>
+        {selectedProduct && (
+          <ProductDetail
+            producto={selectedProduct}
+            onBack={() => {
+              setOpenReportModal(false);
+              handleBackToCatalog();
+            }}
+            onAddToCart={handleAddToCart}
+            onGoToCart={() => navigateTo('carrito')}
+            todosLosProductos={productos}
+            onSelectRelated={(prod) => {
+              setOpenReportModal(false);
+              handleViewProduct(prod);
+            }}
+            openReportInitially={openReportModal}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

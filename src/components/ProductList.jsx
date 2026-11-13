@@ -15,7 +15,8 @@ export default function ProductList({
   productos = [],
   categorias = CATEGORIAS,
   onAddToCart,
-  onViewDetails
+  onViewDetails,
+  onReportProduct
 }) {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -114,7 +115,7 @@ export default function ProductList({
         <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" data-testid="products-grid">
           {productosFiltrados.map(prod => (
             <div className="col" key={prod.codigo} id={`producto-${prod.codigo}`}>
-              <ProductCard producto={prod} onAddToCart={onAddToCart} onViewDetails={onViewDetails} />
+              <ProductCard producto={prod} onAddToCart={onAddToCart} onViewDetails={onViewDetails} onReportProduct={onReportProduct} />
             </div>
           ))}
         </div>

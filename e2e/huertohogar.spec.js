@@ -155,4 +155,21 @@ test.describe('HuertoHogar E2E — Integración Frontend + Backend EC2', () => {
       }
     }
   });
+
+  test('6. Cosecha Directa de Temporada: cambia los productos al cambiar de estacion', async ({ page }) => {
+    await page.goto('/');
+    const seasonalGrid = page.getByTestId('seasonal-products-grid');
+    await expect(seasonalGrid).toBeVisible({ timeout: 15000 });
+
+    const snapshots = new Set();
+    for (const est of ['primavera', 'verano', 'otono', 'invierno']) {
+      await page.getByTestId(`season-btn-${est}`).click();
+      const codes = await seasonalGrid.locator('[data-testid="product-code"]').allInnerTexts();
+      expect(codes.length).toBe(4);
+      snapshots.add(codes.join(','));
+    }
+
+    // Cada estacion debe mostrar una combinacion distinta de productos
+    expect(snapshots.size).toBe(4);
+  });
 });

@@ -52,10 +52,13 @@ export default function AdminProducts({
   onDeleteOrder,
   // Reportes CRUD
   reportes = [],
+  reportesProductos = [],
   dashboardStats = null,
   onCreateReport,
   onUpdateReport,
   onDeleteReport,
+  onUpdateProductReportStatus,
+  onDeleteProductReport,
   onRefreshAll,
   cargandoAdmin = false,
   errorAdmin = '',
@@ -648,7 +651,7 @@ export default function AdminProducts({
             onClick={() => setTabActiva('reportes')}
             data-testid="tab-reportes"
           >
-            <i className="bi bi-bar-chart-line me-1"></i> Reportes ({reportes.length})
+            <i className="bi bi-bar-chart-line me-1"></i> Reportes ({reportes.length + reportesProductos.length})
           </button>
         </li>
       </ul>
@@ -1853,6 +1856,114 @@ export default function AdminProducts({
                     </table>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Reportes de frutas / productos en mal estado */}
+          <div className="card shadow-sm border-0 mt-4">
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="card-title fw-bold mb-0">
+                  <i className="bi bi-flag-fill text-danger me-2"></i>
+                  Reportes de Frutas en Mal Estado ({reportesProductos.length})
+                </h5>
+                <span className="badge bg-warning-subtle text-warning-emphasis border">
+                  Pendientes: {reportesProductos.filter((r) => (r.estado || 'PENDIENTE') === 'PENDIENTE').length}
+                </span>
+              </div>
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0" data-testid="product-reports-table">
+                  <thead className="table-light">
+                    <tr>
+                      <th>ID</th>
+                      <th>Producto</th>
+                      <th>Motivo y Detalle</th>
+                      <th>Reportado por</th>
+                      <th className="text-center">Estado</th>
+                      {esAdmin && <th className="text-center">Acciones</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportesProductos.length === 0 ? (
+                      <tr>
+                        <td colSpan={esAdmin ? 6 : 5} className="text-center text-muted py-4" data-testid="no-product-reports">
+                          No hay reportes de frutas en mal estado registrados.
+                        </td>
+                      </tr>
+                    ) : (
+                      reportesProductos.map((rep) => {
+                        const est = rep.estado || 'PENDIENTE';
+                        const badgeCls = est === 'RESUELTO'
+                          ? 'bg-success-subtle text-success'
+                          : est === 'EN_REVISION'
+                            ? 'bg-info-subtle text-info-emphasis'
+                            : 'bg-warning-subtle text-warning-emphasis';
+                        return (
+                          <tr key={rep.id} data-testid={`product-report-row-${rep.id}`}>
+                            <td><span className="badge bg-light text-dark border">#{rep.id}</span></td>
+                            <td>
+                              <div className="fw-semibold text-dark">{rep.nombreProducto}</div>
+                              <small className="text-muted">{rep.codigoProducto}</small>
+                            </td>
+                            <td>
+                              <div className="fw-semibold text-danger small">{rep.motivo}</div>
+                              {rep.descripcion && <div className="small text-secondary">{rep.descripcion}</div>}
+                            </td>
+                            <td className="small text-muted">
+                              <div>{rep.reportadoPor || 'Cliente'}</div>
+                              {rep.fechaReporte && (
+                                <small>{String(rep.fechaReporte).slice(0, 16).replace('T', ' ')}</small>
+                              )}
+                            </td>
+                            <td className="text-center">
+                              <span className={`badge ${badgeCls} border`} data-testid={`product-report-status-${rep.id}`}>
+                                {est}
+                              </span>
+                            </td>
+                            {esAdmin && (
+                              <td className="text-center">
+                                <div className="btn-group btn-group-sm">
+                                  {est !== 'RESUELTO' && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-success"
+                                      title="Marcar como resuelto"
+                                      onClick={() => onUpdateProductReportStatus && onUpdateProductReportStatus(rep.id, 'RESUELTO')}
+                                      data-testid={`btn-resolve-product-report-${rep.id}`}
+                                    >
+                                      <i className="bi bi-check2-circle"></i>
+                                    </button>
+                                  )}
+                                  {est === 'PENDIENTE' && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-info"
+                                      title="Marcar en revision"
+                                      onClick={() => onUpdateProductReportStatus && onUpdateProductReportStatus(rep.id, 'EN_REVISION')}
+                                      data-testid={`btn-review-product-report-${rep.id}`}
+                                    >
+                                      <i className="bi bi-eye"></i>
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-danger"
+                                    title="Eliminar reporte"
+                                    onClick={() => onDeleteProductReport && onDeleteProductReport(rep.id)}
+                                    data-testid={`btn-delete-product-report-${rep.id}`}
+                                  >
+                                    <i className="bi bi-trash"></i>
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

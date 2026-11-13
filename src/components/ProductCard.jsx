@@ -8,7 +8,7 @@ import CartIcon from './CartIcon.jsx';
  * Integra micro-interacciones fluidas y físicas de resorte (spring physics)
  * inspiradas en SmoothUI (smoothui.dev), conservando la grilla responsiva de Bootstrap.
  */
-export default function ProductCard({ producto, onAddToCart, onViewDetails }) {
+export default function ProductCard({ producto, onAddToCart, onViewDetails, onReportProduct }) {
   const [cantidad, setCantidad] = useState(1);
   const [mensajeFeedback, setMensajeFeedback] = useState('');
 
@@ -171,6 +171,24 @@ export default function ProductCard({ producto, onAddToCart, onViewDetails }) {
           >
             <CartIcon size={16} className="me-1" /> Agregar
           </motion.button>
+
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center"
+            title="Reportar fruta en mal estado"
+            aria-label={`Reportar ${producto.nombre} en mal estado`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onReportProduct) {
+                onReportProduct(producto);
+              } else if (onViewDetails) {
+                onViewDetails(producto);
+              }
+            }}
+            data-testid="btn-report-product"
+          >
+            <i className="bi bi-flag"></i>
+          </button>
         </div>
 
         {mensajeFeedback && (

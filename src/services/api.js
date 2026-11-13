@@ -75,7 +75,7 @@ apiClient.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
     const url = error?.config?.url || '';
-    if (status === 401 && !url.includes('/auth/login') && unauthorizedHandler) {
+    if (status === 401 && !url.includes('/auth/login') && !error?.config?.skipAuthRedirect && unauthorizedHandler) {
       unauthorizedHandler(error);
     }
     return Promise.reject(error);
@@ -307,4 +307,23 @@ export const actualizarReporte = async (id, reporte) => {
 
 export const eliminarReporte = async (id) => {
   await apiClient.delete(`${API_ENDPOINTS.REPORTES}/${id}`);
+};
+
+export const reportarProductoMalEstado = async (reporte) => {
+  const { data } = await apiClient.post(`${API_ENDPOINTS.REPORTES}/productos`, reporte);
+  return data;
+};
+
+export const listarReportesProductos = async () => {
+  const { data } = await apiClient.get(`${API_ENDPOINTS.REPORTES}/productos`, { skipAuthRedirect: true });
+  return Array.isArray(data) ? data : [];
+};
+
+export const actualizarEstadoReporteProducto = async (id, estado) => {
+  const { data } = await apiClient.patch(`${API_ENDPOINTS.REPORTES}/productos/${id}/estado`, { estado });
+  return data;
+};
+
+export const eliminarReporteProducto = async (id) => {
+  await apiClient.delete(`${API_ENDPOINTS.REPORTES}/productos/${id}`);
 };
