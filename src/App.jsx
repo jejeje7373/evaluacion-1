@@ -1,108 +1,456 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar.jsx';
 import Hero from './components/Hero.jsx';
+import GalleryHelix from './components/GalleryHelix.jsx';
 import ProductList from './components/ProductList.jsx';
+import ProductCard from './components/ProductCard.jsx';
+import ProductDetail from './components/ProductDetail.jsx';
+import GripIcon from './components/GripIcon.jsx';
 import Cart from './components/Cart.jsx';
 import LoginForm from './components/LoginForm.jsx';
 import RegisterForm from './components/RegisterForm.jsx';
 import AdminProducts from './components/AdminProducts.jsx';
 import Footer from './components/Footer.jsx';
-import { CATALOGO_PRODUCTOS } from './data/products.js';
+import OrchardBackground from './components/OrchardBackground.jsx';
+import { CATEGORIAS } from './data/products.js';
+import {
+  getAuthToken,
+  clearAuthToken,
+  setUnauthorizedHandler,
+  obtenerMensajeError,
+  normalizarUsuario,
+  listarProductos,
+  obtenerProductoPorCodigo,
+  registrarVisualizacionProducto,
+  crearProducto,
+  actualizarProducto,
+  eliminarProducto,
+  restaurarCatalogo,
+  listarCategorias,
+  crearCategoria,
+  actualizarCategoria,
+  eliminarCategoria,
+  loginUsuario,
+  registrarUsuario,
+  obtenerUsuarioActual,
+  logoutUsuario,
+  listarUsuarios,
+  crearUsuario,
+  actualizarUsuario,
+  cambiarEstadoUsuario,
+  eliminarUsuario,
+  listarOrdenes,
+  crearOrdenCheckout,
+  actualizarEstadoOrden,
+  eliminarOrden,
+  listarReportes,
+  obtenerDashboardReportes,
+  crearReporte,
+  actualizarReporte,
+  eliminarReporte
+} from './services/api.js';
 
-export default function App() {
-  const [activeView, setActiveView] = useState('catalogo');
-
-  // Estado del catálogo con persistencia en localStorage
-  const [productos, setProductos] = useState(() => {
-    try {
-      const saved = localStorage.getItem('huertohogar_productos');
-      return saved ? JSON.parse(saved) : CATALOGO_PRODUCTOS;
-    } catch {
-      return CATALOGO_PRODUCTOS;
+export default function App({ initialView = null, initialUser = null }) {
+  const [activeView, setActiveView] = useState(() => {
+    if (initialView) return initialView;
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash;
+      if (hash.startsWith('#producto-')) return 'producto';
+      if (['#inicio', '#catalogo', '#carrito', '#login', '#registro', '#admin'].includes(hash)) {
+        return hash.replace('#', '');
+      }
     }
+    return 'inicio';
   });
 
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      const saved = localStorage.getItem('huertohogar_cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('huertohogar_session');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  // Estado del catálogo y módulos administrativos (sin datos quemados)
+  const [productos, setProductos] = useState([]);
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
+  const [errorCatalogo, setErrorCatalogo] = useState('');
 
+  const [categoriasObj, setCategoriasObj] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
+  const [ordenes, setOrdenes] = useState([]);
+  const [reportes, setReportes] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [cargandoAdmin, setCargandoAdmin] = useState(false);
+  const [errorAdmin, setErrorAdmin] = useState('');
+
+  // Estado de sesión JWT y carrito en memoria
+  const [cartItems, setCartItems] = useState([]);
+  const [currentUser, setCurrentUser] = useState(() => normalizarUsuario(initialUser));
+  const [cargandoSesion, setCargandoSesion] = useState(() => Boolean(!initialUser && getAuthToken()));
   const [toastNotification, setToastNotification] = useState('');
 
-  // Sincronizar catálogo con localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('huertohogar_productos', JSON.stringify(productos));
-    } catch {
-      // Ignorar error de cuota
-    }
-  }, [productos]);
+  const showToast = useCallback((msg) => {
+    setToastNotification(msg);
+    setTimeout(() => setToastNotification(''), 3500);
+  }, []);
 
-  // Sincronizar carrito con localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('huertohogar_cart', JSON.stringify(cartItems));
-    } catch {
-      // Ignorar
-    }
-  }, [cartItems]);
+  const rolUpper = (currentUser?.rol || currentUser?.role || '').toUpperCase();
+  const esAdmin = rolUpper === 'ADMIN';
+  const esVendedor = rolUpper === 'VENDEDOR';
+  const puedeGestionarPanel = esAdmin || esVendedor;
 
-  // Sincronizar sesión con localStorage
+  // Manejo global de token expirado o 401
   useEffect(() => {
+    setUnauthorizedHandler(() => {
+      clearAuthToken();
+      setCurrentUser(null);
+      setActiveView('login');
+      showToast('Tu sesión ha expirado o no es válida. Inicia sesión nuevamente.');
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [showToast]);
+
+  // Restaurar sesión JWT al recargar la página usando GET /api/auth/me
+  useEffect(() => {
+    if (initialUser) {
+      setCargandoSesion(false);
+      return;
+    }
+    const token = getAuthToken();
+    if (!token) {
+      setCargandoSesion(false);
+      return;
+    }
+    let cancelado = false;
+    obtenerUsuarioActual()
+      .then((user) => {
+        if (!cancelado) {
+          setCurrentUser(normalizarUsuario(user));
+        }
+      })
+      .catch(() => {
+        if (!cancelado) {
+          clearAuthToken();
+          setCurrentUser(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelado) {
+          setCargandoSesion(false);
+        }
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [initialUser]);
+
+  // Cargar datos públicos desde ms-productos y ms-categorias
+  const cargarCatalogoBackend = useCallback(async () => {
+    setCargandoCatalogo(true);
+    setErrorCatalogo('');
     try {
-      if (currentUser) {
-        localStorage.setItem('huertohogar_session', JSON.stringify(currentUser));
-      } else {
-        localStorage.removeItem('huertohogar_session');
+      const dataProd = await listarProductos();
+      setProductos(Array.isArray(dataProd) ? dataProd : []);
+    } catch (err) {
+      setErrorCatalogo(obtenerMensajeError(err, 'No se pudo cargar el catálogo desde el servidor.'));
+    } finally {
+      setCargandoCatalogo(false);
+    }
+
+    try {
+      const dataCat = await listarCategorias();
+      if (Array.isArray(dataCat)) {
+        setCategoriasObj(dataCat);
       }
     } catch {
-      // Ignorar
+      // Las categorías tienen respaldo de etiquetas en UI si ms-categorias no responde
     }
-  }, [currentUser]);
+  }, []);
 
-  const showToast = (msg) => {
-    setToastNotification(msg);
-    setTimeout(() => setToastNotification(''), 3000);
+  // Cargar datos administrativos (ADMIN ve todo; VENDEDOR ve catálogo, ventas y reportes)
+  const cargarDatosAdminBackend = useCallback(async () => {
+    setCargandoAdmin(true);
+    setErrorAdmin('');
+    await cargarCatalogoBackend();
+
+    try {
+      const promesas = [
+        listarOrdenes(),
+        listarReportes(),
+        obtenerDashboardReportes()
+      ];
+      if (esAdmin) {
+        promesas.push(listarUsuarios());
+      }
+      const resultados = await Promise.all(promesas);
+      setOrdenes(Array.isArray(resultados[0]) ? resultados[0] : []);
+      setReportes(Array.isArray(resultados[1]) ? resultados[1] : []);
+      setDashboardStats(resultados[2] || null);
+      if (esAdmin) {
+        setUsuarios(Array.isArray(resultados[3]) ? resultados[3] : []);
+      }
+    } catch (err) {
+      setErrorAdmin(obtenerMensajeError(err, 'Error al cargar datos del panel desde el servidor.'));
+    } finally {
+      setCargandoAdmin(false);
+    }
+  }, [cargarCatalogoBackend, esAdmin]);
+
+  useEffect(() => {
+    cargarCatalogoBackend();
+  }, [cargarCatalogoBackend]);
+
+  useEffect(() => {
+    if (activeView === 'admin' && puedeGestionarPanel) {
+      cargarDatosAdminBackend();
+    }
+  }, [activeView, puedeGestionarPanel, cargarDatosAdminBackend]);
+
+  // --- 1. OPERACIONES CRUD DE PRODUCTOS ---
+  const handleAddProduct = async (nuevoProducto) => {
+    const creado = await crearProducto(nuevoProducto);
+    setProductos(prev => [creado, ...prev]);
+    showToast(`Producto "${creado.nombre}" creado en la base de datos.`);
+    return creado;
   };
 
-  // --- OPERACIONES CRUD DE PRODUCTOS (ADMIN) ---
-  const handleAddProduct = (nuevoProducto) => {
-    setProductos(prev => [nuevoProducto, ...prev]);
-    showToast(`Producto "${nuevoProducto.nombre}" creado exitosamente.`);
-  };
-
-  const handleUpdateProduct = (productoActualizado) => {
-    setProductos(prev => prev.map(p => p.codigo === productoActualizado.codigo ? productoActualizado : p));
-    // Si el producto estaba en el carrito, actualizar sus datos
-    setCartItems(prev => prev.map(item => item.codigo === productoActualizado.codigo 
-      ? { ...item, nombre: productoActualizado.nombre, precio: productoActualizado.precio, unidad: productoActualizado.unidad }
+  const handleUpdateProduct = async (productoActualizado) => {
+    const actualizado = await actualizarProducto(productoActualizado.codigo, productoActualizado);
+    setProductos(prev => prev.map(p => p.codigo === actualizado.codigo ? actualizado : p));
+    if (selectedProduct && selectedProduct.codigo === actualizado.codigo) {
+      setSelectedProduct(actualizado);
+    }
+    setCartItems(prev => prev.map(item => item.codigo === actualizado.codigo
+      ? { ...item, nombre: actualizado.nombre, precio: actualizado.precio, unidad: actualizado.unidad }
       : item
     ));
-    showToast(`Producto "${productoActualizado.nombre}" actualizado.`);
+    showToast(`Producto "${actualizado.nombre}" actualizado en la base de datos.`);
+    return actualizado;
   };
 
-  const handleDeleteProduct = (codigo) => {
+  const handleDeleteProduct = async (codigo) => {
+    await eliminarProducto(codigo);
     setProductos(prev => prev.filter(p => p.codigo !== codigo));
     setCartItems(prev => prev.filter(item => item.codigo !== codigo));
-    showToast('Producto eliminado del catálogo.');
+    if (selectedProduct && selectedProduct.codigo === codigo) {
+      setSelectedProduct(null);
+      setActiveView('catalogo');
+    }
+    showToast('Producto eliminado de la base de datos.');
   };
 
-  const handleResetDefaults = () => {
-    setProductos(CATALOGO_PRODUCTOS);
-    showToast('Catálogo restablecido a los 8 productos maestros.');
+  const handleResetDefaults = async () => {
+    const restaurados = await restaurarCatalogo();
+    setProductos(restaurados);
+    if (selectedProduct) {
+      const resetProd = restaurados.find(p => p.codigo === selectedProduct.codigo);
+      if (resetProd) setSelectedProduct(resetProd);
+    }
+    showToast('Catálogo restablecido en la base de datos.');
+  };
+
+  // --- 2. OPERACIONES CRUD DE CATEGORÍAS ---
+  const handleAddCategory = async (nuevaCat) => {
+    const creada = await crearCategoria(nuevaCat);
+    setCategoriasObj(prev => [...prev, creada]);
+    showToast(`Categoría "${creada.nombre}" creada.`);
+    return creada;
+  };
+
+  const handleUpdateCategory = async (id, datosCat) => {
+    const actualizada = await actualizarCategoria(id, datosCat);
+    setCategoriasObj(prev => prev.map(c => c.id === id ? actualizada : c));
+    showToast(`Categoría "${actualizada.nombre}" actualizada.`);
+    return actualizada;
+  };
+
+  const handleDeleteCategory = async (id) => {
+    await eliminarCategoria(id);
+    setCategoriasObj(prev => prev.filter(c => c.id !== id));
+    showToast('Categoría eliminada.');
+  };
+
+  // --- 3. OPERACIONES CRUD DE USUARIOS (Solo ADMIN) ---
+  const handleAddUser = async (nuevoUser) => {
+    const creado = await crearUsuario(nuevoUser);
+    setUsuarios(prev => [...prev, creado]);
+    showToast(`Usuario "${creado.nombre}" (${creado.rol}) creado.`);
+    return creado;
+  };
+
+  const handleUpdateUser = async (id, datosUser) => {
+    const actualizado = await actualizarUsuario(id, datosUser);
+    setUsuarios(prev => prev.map(u => u.id === id ? actualizado : u));
+    showToast(`Usuario "${actualizado.nombre}" actualizado (${actualizado.rol}).`);
+    return actualizado;
+  };
+
+  const handleToggleUserStatus = async (id, activo) => {
+    const actualizado = await cambiarEstadoUsuario(id, activo);
+    setUsuarios(prev => prev.map(u => u.id === id ? actualizado : u));
+    showToast(`Estado de "${actualizado.nombre}" actualizado a ${actualizado.activo ? 'Activo' : 'Inactivo'}.`);
+    return actualizado;
+  };
+
+  const handleDeleteUser = async (id) => {
+    await eliminarUsuario(id);
+    setUsuarios(prev => prev.filter(u => u.id !== id));
+    showToast('Usuario eliminado de la base de datos.');
+  };
+
+  // Autenticación y Registro contra backend
+  const handleAuthenticateUser = async (emailInput, passwordInput) => {
+    const { user, token } = await loginUsuario((emailInput || '').trim().toLowerCase(), passwordInput);
+    return { user, token };
+  };
+
+  const handleRegisterUser = async (nuevoUsuario) => {
+    const { user, token } = await registrarUsuario(nuevoUsuario);
+    return { user, token };
+  };
+
+  // --- 4. OPERACIONES CRUD DE VENTAS / ÓRDENES ---
+  const handleCheckoutOrder = async (ordenPayload) => {
+    if (!currentUser) {
+      throw {
+        response: {
+          status: 401,
+          data: { error: 'Debes iniciar sesión para confirmar una compra.' }
+        }
+      };
+    }
+    const ordenCreada = await crearOrdenCheckout(ordenPayload);
+    setOrdenes(prev => [ordenCreada, ...prev]);
+    await cargarCatalogoBackend();
+    showToast(`¡Orden #${ordenCreada.id} registrada exitosamente en el servidor!`);
+    return ordenCreada;
+  };
+
+  const handleUpdateOrderStatus = async (id, estado) => {
+    const actualizada = await actualizarEstadoOrden(id, estado);
+    setOrdenes(prev => prev.map(o => o.id === id ? actualizada : o));
+    return actualizada;
+  };
+
+  const handleDeleteOrder = async (id) => {
+    await eliminarOrden(id);
+    setOrdenes(prev => prev.filter(o => o.id !== id));
+    const dash = await obtenerDashboardReportes().catch(() => null);
+    if (dash) setDashboardStats(dash);
+  };
+
+  // --- 5. OPERACIONES CRUD DE REPORTES ---
+  const handleCreateReport = async (repPayload) => {
+    const creado = await crearReporte(repPayload);
+    setReportes(prev => [creado, ...prev]);
+    const dash = await obtenerDashboardReportes().catch(() => null);
+    if (dash) setDashboardStats(dash);
+    return creado;
+  };
+
+  const handleUpdateReport = async (id, repPayload) => {
+    const actualizado = await actualizarReporte(id, repPayload);
+    setReportes(prev => prev.map(r => r.id === id ? actualizado : r));
+    return actualizado;
+  };
+
+  const handleDeleteReport = async (id) => {
+    await eliminarReporte(id);
+    setReportes(prev => prev.filter(r => r.id !== id));
+  };
+
+  // Navegación con sincronización de historial
+  const navigateTo = (view, producto = null, push = true) => {
+    if (producto) {
+      setSelectedProduct(producto);
+      if (producto.codigo) {
+        registrarVisualizacionProducto(producto.codigo)
+          .then((actualizado) => {
+            if (actualizado) {
+              setSelectedProduct(actualizado);
+              setProductos(prev => prev.map(p => p.codigo === actualizado.codigo ? actualizado : p));
+            }
+          })
+          .catch(() => {
+            obtenerProductoPorCodigo(producto.codigo)
+              .then((detalle) => {
+                if (detalle) setSelectedProduct(detalle);
+              })
+              .catch(() => {});
+          });
+      }
+      if (push && typeof window !== 'undefined' && window.history) {
+        window.history.pushState(
+          { view: activeView === 'producto' ? 'catalogo' : activeView, codigo: producto.codigo },
+          '',
+          `#producto-${producto.codigo}`
+        );
+      }
+      return;
+    }
+
+    setSelectedProduct(null);
+    setActiveView(view);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (view === 'catalogo') {
+        window.dispatchEvent(new CustomEvent('huertohogar:show-all-products'));
+      }
+
+      if (push && window.history) {
+        window.history.pushState({ view, codigo: null }, '', `#${view}`);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || initialView) return;
+
+    const initialHash = window.location.hash;
+    if (initialHash.startsWith('#producto-')) {
+      const code = initialHash.replace('#producto-', '');
+      const initialProd = productos.find(p => p.codigo === code);
+      if (initialProd) {
+        setSelectedProduct(initialProd);
+        setActiveView('catalogo');
+        window.history.replaceState({ view: 'catalogo', codigo: code }, '', initialHash);
+      }
+    } else if (!window.history.state) {
+      window.history.replaceState({ view: activeView, codigo: null }, '', `#${activeView}`);
+    }
+
+    const handlePopState = (event) => {
+      const state = event.state;
+      if (state) {
+        if (state.codigo) {
+          const prod = productos.find(p => p.codigo === state.codigo);
+          if (prod) {
+            if (state.view) setActiveView(state.view);
+            setSelectedProduct(prod);
+            return;
+          }
+        }
+        setSelectedProduct(null);
+        if (state.view) {
+          setActiveView(state.view);
+        }
+      } else {
+        setSelectedProduct(null);
+        setActiveView('inicio');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [productos, activeView, initialView]);
+
+  const handleViewProduct = (producto) => {
+    navigateTo(activeView, producto, true);
+  };
+
+  const handleBackToCatalog = () => {
+    if (typeof window !== 'undefined' && window.history && window.history.state?.codigo) {
+      window.history.back();
+    } else {
+      setSelectedProduct(null);
+    }
   };
 
   // --- OPERACIONES DEL CARRITO ---
@@ -142,36 +490,53 @@ export default function App() {
   };
 
   const handleLoginSuccess = (user) => {
-    setCurrentUser(user);
-    if (user.rol === 'admin') {
-      setActiveView('admin');
-      showToast(`¡Bienvenido Administrador(a) ${user.nombre}!`);
+    const userNormalizado = normalizarUsuario(user);
+    setCurrentUser(userNormalizado);
+    if (userNormalizado?.rol === 'ADMIN') {
+      navigateTo('admin');
+      showToast(`¡Bienvenido Administrador(a) ${userNormalizado.nombre}!`);
+    } else if (userNormalizado?.rol === 'VENDEDOR') {
+      navigateTo('admin');
+      showToast(`¡Bienvenido Vendedor(a) ${userNormalizado.nombre}! Publica tus productos y revisa tus estadísticas.`);
     } else {
-      setActiveView('catalogo');
-      showToast(`¡Bienvenido(a), ${user.nombre || user.email}!`);
+      navigateTo('catalogo');
+      showToast(`¡Bienvenido(a), ${userNormalizado?.nombre || userNormalizado?.email}!`);
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutUsuario();
     setCurrentUser(null);
-    setActiveView('catalogo');
+    setUsuarios([]);
+    setOrdenes([]);
+    setReportes([]);
+    navigateTo('catalogo');
     showToast('Has cerrado sesión exitosamente.');
   };
 
   const handleRegisterSuccess = (newUser) => {
-    setCurrentUser(newUser);
-    setActiveView('catalogo');
-    showToast(`¡Cuenta creada con éxito! Bienvenido(a) ${newUser.nombre}.`);
+    const userNormalizado = normalizarUsuario(newUser);
+    setCurrentUser(userNormalizado);
+    if (userNormalizado?.rol === 'VENDEDOR' || userNormalizado?.rol === 'ADMIN') {
+      navigateTo('admin');
+    } else {
+      navigateTo('catalogo');
+    }
+    showToast(`¡Cuenta creada con éxito! Bienvenido(a) ${userNormalizado?.nombre || ''}.`);
   };
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.cantidad, 0);
+  const listaNombresCategorias = categoriasObj.length > 0
+    ? ['Todas', ...categoriasObj.map(c => c.nombre)]
+    : CATEGORIAS;
 
   return (
-    <div className="d-flex flex-column min-vh-100 bg-white" data-testid="app-root">
+    <div className="d-flex flex-column min-vh-100 position-relative" data-testid="app-root">
+      <OrchardBackground />
       {/* Toast flotante de notificación */}
       {toastNotification && (
-        <div 
-          className="position-fixed bottom-0 end-0 p-3" 
+        <div
+          className="position-fixed bottom-0 end-0 p-3"
           style={{ zIndex: 1100 }}
           data-testid="global-toast"
         >
@@ -181,9 +546,9 @@ export default function App() {
                 <i className="bi bi-check-circle-fill me-2"></i>
                 {toastNotification}
               </div>
-              <button 
-                type="button" 
-                className="btn-close btn-close-white me-2 m-auto" 
+              <button
+                type="button"
+                className="btn-close btn-close-white me-2 m-auto"
                 onClick={() => setToastNotification('')}
               ></button>
             </div>
@@ -192,80 +557,239 @@ export default function App() {
       )}
 
       {/* Barra de navegación responsiva */}
-      <Navbar 
-        activeView={activeView}
-        setActiveView={setActiveView}
+      <Navbar
+        activeView={activeView === 'producto' ? 'catalogo' : activeView}
+        setActiveView={(view) => navigateTo(view)}
         cartCount={totalCartCount}
         currentUser={currentUser}
         onLogout={handleLogout}
       />
 
-      {/* Vistas según navegación activa */}
-      <main className="flex-grow-1">
-        {activeView === 'catalogo' && (
-          <>
-            <Hero onExplore={() => {
-              const el = document.getElementById('catalogo-anchor');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }} />
-            <div id="catalogo-anchor">
-              <ProductList 
-                productos={productos} 
-                onAddToCart={handleAddToCart}
-              />
+      {/* Error global de conexión con el catálogo */}
+      {errorCatalogo && (
+        <div className="container mt-3">
+          <div className="alert alert-danger d-flex justify-content-between align-items-center shadow-sm" role="alert" data-testid="catalog-error-banner">
+            <div>
+              <i className="bi bi-wifi-off me-2"></i>
+              <strong>Error de conexión con la API:</strong> {errorCatalogo}
             </div>
+            <button
+              type="button"
+              className="btn btn-outline-danger btn-sm"
+              onClick={cargarCatalogoBackend}
+              data-testid="btn-retry-catalog"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Vistas según navegación activa */}
+      <main className="flex-grow-1 position-relative" style={{ zIndex: 1 }}>
+        {activeView === 'inicio' && (
+          <>
+            <Hero
+              productos={productos}
+              cargando={cargandoCatalogo}
+              onExplore={() => navigateTo('catalogo')}
+              onSelectProduct={(codigo) => {
+                const prod = productos.find(p => p.codigo === codigo);
+                if (prod) handleViewProduct(prod);
+              }}
+            />
+
+            <GalleryHelix
+              productos={productos}
+              onSelectProduct={handleViewProduct}
+              onAddToCart={handleAddToCart}
+              onExploreCatalog={() => navigateTo('catalogo')}
+            />
+
+            <section className="container my-5">
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                  <h3 className="h4 fw-bold text-dark mb-1">Cosecha Directa de Temporada</h3>
+                  <p className="text-muted small mb-0">Una muestra de nuestros alimentos más frescos del campo chileno</p>
+                </div>
+                <button
+                  className="btn btn-outline-success fw-semibold d-inline-flex align-items-center"
+                  onClick={() => navigateTo('catalogo')}
+                >
+                  <GripIcon size={18} className="me-2" /> Ver Todos los Productos ({productos.length})
+                </button>
+              </div>
+
+              {cargandoCatalogo ? (
+                <div className="text-center py-5" data-testid="catalog-loading">
+                  <div className="spinner-border text-success mb-2" role="status">
+                    <span className="visually-hidden">Cargando productos...</span>
+                  </div>
+                  <p className="text-muted small mb-0">Cargando productos desde la base de datos...</p>
+                </div>
+              ) : (
+                <div className="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+                  {productos.slice(0, 4).map(prod => (
+                    <div className="col" key={prod.codigo}>
+                      <ProductCard
+                        producto={prod}
+                        onAddToCart={handleAddToCart}
+                        onViewDetails={handleViewProduct}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-5 p-4 p-md-5 bg-light rounded-4 border text-center shadow-sm">
+                <span className="badge bg-success-subtle text-success border border-success-subtle mb-2 px-3 py-2 rounded-pill fw-semibold">
+                  <i className="bi bi-box-seam me-1"></i> Variedad Completa
+                </span>
+                <h4 className="fw-bold text-dark mb-2">Explora nuestro Catálogo Completo</h4>
+                <p className="text-muted mb-4 mx-auto" style={{ maxWidth: '600px' }}>
+                  Frutas frescas y verduras orgánicas de la V Región directo a tu mesa con despacho en cadena de frío.
+                </p>
+                <button
+                  className="btn btn-success btn-lg px-4 shadow-sm"
+                  onClick={() => navigateTo('catalogo')}
+                >
+                  <GripIcon size={20} className="me-2" /> Ir al Catálogo con Todos los Productos
+                </button>
+              </div>
+            </section>
           </>
         )}
 
+        {(activeView === 'catalogo' || activeView === 'producto') && (
+          <div className="py-2">
+            {cargandoCatalogo ? (
+              <div className="container text-center py-5" data-testid="catalog-loading">
+                <div className="spinner-border text-success mb-2" role="status">
+                  <span className="visually-hidden">Cargando catálogo...</span>
+                </div>
+                <p className="text-muted small mb-0">Cargando catálogo desde el servidor...</p>
+              </div>
+            ) : (
+              <ProductList
+                productos={productos}
+                categorias={listaNombresCategorias}
+                onAddToCart={handleAddToCart}
+                onViewDetails={handleViewProduct}
+              />
+            )}
+          </div>
+        )}
+
+        <AnimatePresence>
+          {selectedProduct && (
+            <ProductDetail
+              producto={selectedProduct}
+              onBack={handleBackToCatalog}
+              onAddToCart={handleAddToCart}
+              onGoToCart={() => navigateTo('carrito')}
+              todosLosProductos={productos}
+              onSelectRelated={handleViewProduct}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Ruta Protegida: solo ADMIN autenticado con sesión válida */}
         {activeView === 'admin' && (
-          currentUser?.rol === 'admin' ? (
-            <AdminProducts 
+          cargandoSesion ? (
+            <div className="container my-5 text-center py-5" data-testid="auth-loading">
+              <div className="spinner-border text-success mb-2" role="status">
+                <span className="visually-hidden">Verificando sesión...</span>
+              </div>
+              <p className="text-muted small">Verificando permisos con el servidor...</p>
+            </div>
+          ) : !currentUser ? (
+            <div className="container my-5 text-center" data-testid="protected-route-unauth">
+              <div className="alert alert-warning py-4 shadow-sm">
+                <i className="bi bi-lock-fill fs-1 text-warning d-block mb-2"></i>
+                <h4 className="fw-bold">Acceso Restringido (401)</h4>
+                <p className="mb-3 text-muted">
+                  Debes iniciar sesión para acceder al panel de administración.
+                </p>
+                <button className="btn btn-success" onClick={() => navigateTo('login')} data-testid="btn-go-login">
+                  Ir a Iniciar Sesión
+                </button>
+              </div>
+            </div>
+          ) : !puedeGestionarPanel ? (
+            <div className="container my-5 text-center" data-testid="protected-route-forbidden">
+              <div className="alert alert-danger py-4 shadow-sm">
+                <i className="bi bi-shield-x fs-1 text-danger d-block mb-2"></i>
+                <h4 className="fw-bold">Acceso Denegado (403)</h4>
+                <p className="mb-3 text-muted">
+                  Tu cuenta tiene rol <strong>{currentUser.rol}</strong>. Solo usuarios con rol <strong>ADMIN</strong> o <strong>VENDEDOR</strong> pueden acceder al panel de gestión.
+                </p>
+                <button className="btn btn-outline-dark" onClick={() => navigateTo('catalogo')} data-testid="btn-back-store">
+                  Volver al Catálogo
+                </button>
+              </div>
+            </div>
+          ) : (
+            <AdminProducts
+              currentUser={currentUser}
               productos={productos}
               onAddProduct={handleAddProduct}
               onUpdateProduct={handleUpdateProduct}
               onDeleteProduct={handleDeleteProduct}
               onResetDefaults={handleResetDefaults}
-              onExitAdmin={() => setActiveView('catalogo')}
+              onExitAdmin={() => navigateTo('catalogo')}
+              categoriasObj={categoriasObj}
+              onAddCategory={handleAddCategory}
+              onUpdateCategory={handleUpdateCategory}
+              onDeleteCategory={handleDeleteCategory}
+              usuarios={usuarios}
+              onAddUser={handleAddUser}
+              onUpdateUser={handleUpdateUser}
+              onToggleUserStatus={handleToggleUserStatus}
+              onDeleteUser={handleDeleteUser}
+              ordenes={ordenes}
+              onUpdateOrderStatus={handleUpdateOrderStatus}
+              onDeleteOrder={handleDeleteOrder}
+              reportes={reportes}
+              dashboardStats={dashboardStats}
+              onCreateReport={handleCreateReport}
+              onUpdateReport={handleUpdateReport}
+              onDeleteReport={handleDeleteReport}
+              onRefreshAll={cargarDatosAdminBackend}
+              cargandoAdmin={cargandoAdmin}
+              errorAdmin={errorAdmin}
             />
-          ) : (
-            <div className="container my-5 text-center">
-              <div className="alert alert-warning py-4 shadow-sm">
-                <h4 className="fw-bold">Acceso Restringido</h4>
-                <p className="mb-3 text-muted">Debes iniciar sesión con una cuenta de Administrador para acceder a este panel.</p>
-                <button className="btn btn-success" onClick={() => setActiveView('login')}>
-                  Ir a Iniciar Sesión
-                </button>
-              </div>
-            </div>
           )
         )}
 
         {activeView === 'carrito' && (
-          <Cart 
+          <Cart
             cartItems={cartItems}
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}
             onClearCart={handleClearCart}
-            onContinueShopping={() => setActiveView('catalogo')}
+            onContinueShopping={() => navigateTo('catalogo')}
+            currentUser={currentUser}
+            onCheckout={handleCheckoutOrder}
           />
         )}
 
         {activeView === 'login' && (
-          <LoginForm 
+          <LoginForm
             onLoginSuccess={handleLoginSuccess}
-            onSwitchToRegister={() => setActiveView('registro')}
+            onSwitchToRegister={() => navigateTo('registro')}
+            onAuthenticate={handleAuthenticateUser}
           />
         )}
 
         {activeView === 'registro' && (
-          <RegisterForm 
+          <RegisterForm
             onRegisterSuccess={handleRegisterSuccess}
-            onSwitchToLogin={() => setActiveView('login')}
+            onSwitchToLogin={() => navigateTo('login')}
+            onRegister={handleRegisterUser}
           />
         )}
       </main>
 
-      {/* Pie de página institucional */}
       <Footer />
     </div>
   );

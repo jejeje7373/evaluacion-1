@@ -18,11 +18,11 @@ export default function Footer() {
               <i className="bi bi-tree-fill me-2"></i> HuertoHogar
             </h5>
             <p className="text-secondary small mt-2">
-              Conectando la tierra con tu mesa. Productos 100% orgánicos cosechados con amor por familias campesinas en Chile.
+              Conectando la tierra de la V Región de Valparaíso con tu mesa. Productos 100% orgánicos cosechados por familias campesinas de Quillota, Limache, Olmué, Aconcagua y Casablanca.
             </p>
             <p className="small text-secondary mb-0">
               <i className="bi bi-geo-alt-fill text-success me-1"></i>
-              Despachos en Santiago, Viña del Mar, Concepción, Temuco, Puerto Montt y más.
+              Despachos en Valparaíso, Viña del Mar, Concón, Quilpué, Villa Alemana, Quillota y toda la 5ª Región.
             </p>
           </div>
 

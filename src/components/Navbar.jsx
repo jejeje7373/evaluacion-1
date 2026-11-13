@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import CartIcon from './CartIcon.jsx';
+import UserIcon from './UserIcon.jsx';
+import UserPlusIcon from './UserPlusIcon.jsx';
+import GripIcon from './GripIcon.jsx';
 
 /**
  * Componente Navbar de HuertoHogar
@@ -53,27 +57,36 @@ export default function Navbar({ activeView, setActiveView, cartCount = 0, curre
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
               <button 
-                className={`nav-link btn btn-link text-start text-white ${activeView === 'catalogo' ? 'active fw-bold text-decoration-underline' : ''}`}
-                onClick={() => handleNavClick('catalogo')}
-                data-testid="nav-catalogo"
+                className={`nav-link btn btn-link text-start text-white d-inline-flex align-items-center ${activeView === 'inicio' ? 'active fw-bold text-decoration-underline' : ''}`}
+                onClick={() => handleNavClick('inicio')}
+                data-testid="nav-inicio"
               >
-                <i className="bi bi-grid-fill me-1"></i> Catálogo
+                <i className="bi bi-house-door-fill me-1"></i> Inicio
               </button>
             </li>
             <li className="nav-item">
               <button 
-                className={`nav-link btn btn-link text-start text-white position-relative ${activeView === 'carrito' ? 'active fw-bold text-decoration-underline' : ''}`}
+                className={`nav-link btn btn-link text-start text-white d-inline-flex align-items-center ${activeView === 'catalogo' ? 'active fw-bold text-decoration-underline' : ''}`}
+                onClick={() => handleNavClick('catalogo')}
+                data-testid="nav-catalogo"
+              >
+                <GripIcon size={20} className="me-1" /> Catálogo
+              </button>
+            </li>
+            <li className="nav-item">
+              <button 
+                className={`nav-link btn btn-link text-start text-white position-relative d-inline-flex align-items-center ${activeView === 'carrito' ? 'active fw-bold text-decoration-underline' : ''}`}
                 onClick={() => handleNavClick('carrito')}
                 data-testid="nav-carrito"
               >
-                <i className="bi bi-cart-fill me-1"></i> Carrito
+                <CartIcon size={20} className="me-1" /> Carrito
                 <span className="badge bg-warning text-dark ms-2 rounded-pill" data-testid="cart-badge">
                   {cartCount}
                 </span>
               </button>
             </li>
             {/* Enlace al Panel Admin exclusivo para administradores */}
-            {currentUser?.rol === 'admin' && (
+            {currentUser?.rol?.toUpperCase() === 'ADMIN' && (
               <li className="nav-item">
                 <button 
                   className={`nav-link btn btn-link text-start text-white ${activeView === 'admin' ? 'active fw-bold text-decoration-underline' : ''}`}
@@ -84,15 +97,27 @@ export default function Navbar({ activeView, setActiveView, cartCount = 0, curre
                 </button>
               </li>
             )}
+            {/* Enlace al Panel Vendedor exclusivo para vendedores */}
+            {currentUser?.rol?.toUpperCase() === 'VENDEDOR' && (
+              <li className="nav-item">
+                <button 
+                  className={`nav-link btn btn-link text-start text-white ${activeView === 'admin' ? 'active fw-bold text-decoration-underline' : ''}`}
+                  onClick={() => handleNavClick('admin')}
+                  data-testid="nav-vendedor"
+                >
+                  <i className="bi bi-shop me-1"></i> Panel Vendedor
+                </button>
+              </li>
+            )}
           </ul>
 
           {/* Sección de autenticación de usuario en Navbar */}
           <div className="d-flex align-items-center gap-2">
             {currentUser ? (
               <div className="d-flex align-items-center gap-2 text-white">
-                <span className="small" data-testid="user-greeting">
-                  <i className="bi bi-person-circle me-1"></i>
-                  Hola, <strong>{currentUser.nombre || currentUser.email}</strong>
+                <span className="small d-inline-flex align-items-center" data-testid="user-greeting">
+                  <UserIcon size={18} className="me-1" />
+                  <span>Hola, <strong>{currentUser.nombre || currentUser.email}</strong></span>
                 </span>
                 <button 
                   className="btn btn-outline-light btn-sm"
@@ -105,18 +130,18 @@ export default function Navbar({ activeView, setActiveView, cartCount = 0, curre
             ) : (
               <div className="btn-group" role="group">
                 <button 
-                  className={`btn btn-sm ${activeView === 'login' ? 'btn-light' : 'btn-outline-light'}`}
+                  className={`btn btn-sm d-inline-flex align-items-center ${activeView === 'login' ? 'btn-light' : 'btn-outline-light'}`}
                   onClick={() => handleNavClick('login')}
                   data-testid="nav-login"
                 >
-                  <i className="bi bi-person-fill me-1"></i> Iniciar Sesión
+                  <UserIcon size={18} className="me-1" /> Iniciar Sesión
                 </button>
                 <button 
-                  className={`btn btn-sm ${activeView === 'registro' ? 'btn-light' : 'btn-outline-light'}`}
+                  className={`btn btn-sm d-inline-flex align-items-center ${activeView === 'registro' ? 'btn-light' : 'btn-outline-light'}`}
                   onClick={() => handleNavClick('registro')}
                   data-testid="nav-registro"
                 >
-                  <i className="bi bi-person-plus-fill me-1"></i> Registro
+                  <UserPlusIcon size={18} className="me-1" /> Registro
                 </button>
               </div>
             )}

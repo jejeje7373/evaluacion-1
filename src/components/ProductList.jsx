@@ -1,28 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard.jsx';
 import { CATEGORIAS } from '../data/products.js';
+
+const normalizarTexto = (txt = '') =>
+  txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
 /**
  * Componente ProductList
  * 
- * Responsividad Bootstrap:
- * - Grilla adaptativa: row-cols-1 (móvil) -> row-cols-sm-2 (tablet pequeña) -> row-cols-md-3 (tablet/laptop) -> row-cols-lg-4 (pantallas grandes)
- * - Barra de búsqueda y filtros adaptativos con flexbox
- * 
- * Props:
- * - productos: Lista completa de productos
- * - onAddToCart: Callback propagado hacia ProductCard
+ * Consume los productos y categorías provenientes de los microservicios
+ * ms-productos (:8083) y ms-categorias (:8082).
  */
-export default function ProductList({ productos = [], onAddToCart }) {
+export default function ProductList({
+  productos = [],
+  categorias = CATEGORIAS,
+  onAddToCart,
+  onViewDetails
+}) {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
 
+  const listaCategorias = Array.isArray(categorias) && categorias.length > 0
+    ? (categorias.includes('Todas') ? categorias : ['Todas', ...categorias])
+    : CATEGORIAS;
+
+  // Escuchar selección de producto desde el Hero o componentes externos
+  useEffect(() => {
+    const handleSelectProduct = (e) => {
+      const codigo = e.detail?.codigo;
+      if (!codigo) return;
+
+      setCategoriaSeleccionada('Todas');
+      setTerminoBusqueda('');
+
+      setTimeout(() => {
+        const el = document.getElementById(`producto-${codigo}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('product-highlight');
+          setTimeout(() => el.classList.remove('product-highlight'), 2400);
+        }
+      }, 150);
+    };
+
+    const handleShowAll = () => {
+      setCategoriaSeleccionada('Todas');
+      setTerminoBusqueda('');
+    };
+
+    window.addEventListener('huertohogar:select-product', handleSelectProduct);
+    window.addEventListener('huertohogar:show-all-products', handleShowAll);
+    return () => {
+      window.removeEventListener('huertohogar:select-product', handleSelectProduct);
+      window.removeEventListener('huertohogar:show-all-products', handleShowAll);
+    };
+  }, []);
+
   // Filtrado reactivo combinado por categoría y texto
   const productosFiltrados = productos.filter(prod => {
-    const coincideCategoria = categoriaSeleccionada === 'Todas' || prod.categoria === categoriaSeleccionada;
-    const coincideBusqueda = prod.nombre.toLowerCase().includes(terminoBusqueda.toLowerCase()) ||
-                             prod.descripcion.toLowerCase().includes(terminoBusqueda.toLowerCase()) ||
-                             prod.atributo.toLowerCase().includes(terminoBusqueda.toLowerCase());
+    const coincideCategoria =
+      categoriaSeleccionada === 'Todas' ||
+      normalizarTexto(prod.categoria) === normalizarTexto(categoriaSeleccionada);
+    const busq = normalizarTexto(terminoBusqueda);
+    const coincideBusqueda =
+      normalizarTexto(prod.nombre).includes(busq) ||
+      normalizarTexto(prod.descripcion).includes(busq) ||
+      normalizarTexto(prod.atributo).includes(busq);
     return coincideCategoria && coincideBusqueda;
   });
 
@@ -49,7 +92,7 @@ export default function ProductList({ productos = [], onAddToCart }) {
 
       {/* Botones de Filtro por Categoría */}
       <div className="d-flex flex-wrap gap-2 mb-4" data-testid="category-filters">
-        {CATEGORIAS.map(cat => (
+        {listaCategorias.map(cat => (
           <button 
             key={cat}
             className={`btn btn-sm ${categoriaSeleccionada === cat ? 'btn-success fw-bold' : 'btn-outline-secondary'}`}
@@ -70,8 +113,8 @@ export default function ProductList({ productos = [], onAddToCart }) {
       ) : (
         <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" data-testid="products-grid">
           {productosFiltrados.map(prod => (
-            <div className="col" key={prod.codigo}>
-              <ProductCard producto={prod} onAddToCart={onAddToCart} />
+            <div className="col" key={prod.codigo} id={`producto-${prod.codigo}`}>
+              <ProductCard producto={prod} onAddToCart={onAddToCart} onViewDetails={onViewDetails} />
             </div>
           ))}
         </div>
@@ -79,4 +122,3 @@ export default function ProductList({ productos = [], onAddToCart }) {
     </section>
   );
 }
-

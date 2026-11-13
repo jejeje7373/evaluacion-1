@@ -1,27 +1,18 @@
 import React, { useState } from 'react';
+import { loginUsuario, obtenerMensajeError } from '../services/api.js';
 
 /**
  * Componente LoginForm
- * 
- * Responsividad Bootstrap:
- * - Centrado en pantalla con row justify-content-center
- * - col-12 en móviles, col-md-8 en tablets y col-lg-5 en escritorio
- * 
- * Props:
- * - onLoginSuccess: Callback invocado con los datos del usuario logueado
- * - onSwitchToRegister: Callback para cambiar a la vista de registro
- * 
- * Estado:
- * - email: Campo de correo electrónico
- * - password: Campo de contraseña
- * - error: Mensaje de error de validación o credenciales incorrectas
+ *
+ * Autentica al usuario contra el microservicio de usuarios vía backend/JWT.
  */
-export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
+export default function LoginForm({ onLoginSuccess, onSwitchToRegister, onAuthenticate }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -38,46 +29,18 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
       return;
     }
 
-    // Intentar verificar en localStorage (usuarios registrados)
-    let usuariosGuardados = [];
     try {
-      usuariosGuardados = JSON.parse(localStorage.getItem('huertohogar_usuarios') || '[]');
-    } catch {
-      usuariosGuardados = [];
-    }
-
-    // Cuentas del sistema preconfiguradas
-    const usuariosSistema = [
-      {
-        nombre: 'Catalina Gómez',
-        email: 'cliente@huertohogar.cl',
-        password: 'Password123*',
-        rol: 'cliente',
-        region: 'Región Metropolitana',
-        comuna: 'Santiago'
-      },
-      {
-        nombre: 'Administrador HuertoHogar',
-        email: 'admin@huertohogar.cl',
-        password: 'Admin123*',
-        rol: 'admin',
-        region: 'Región Metropolitana',
-        comuna: 'Santiago'
-      }
-    ];
-
-    const usuarioEncontrado = usuariosGuardados.find(
-      u => u.email.toLowerCase() === emailTrim.toLowerCase() && u.password === password
-    ) || usuariosSistema.find(
-      u => u.email.toLowerCase() === emailTrim.toLowerCase() && u.password === password
-    );
-
-    if (usuarioEncontrado) {
+      setCargando(true);
+      const authFn = onAuthenticate || loginUsuario;
+      const resultado = await authFn(emailTrim, password);
+      const usuarioAutenticado = resultado?.user || resultado;
       if (onLoginSuccess) {
-        onLoginSuccess(usuarioEncontrado);
+        onLoginSuccess(usuarioAutenticado, resultado?.token || '');
       }
-    } else {
-      setError('Credenciales inválidas. Verifica tu correo y contraseña.');
+    } catch (err) {
+      setError(obtenerMensajeError(err, 'Credenciales inválidas. Verifica tu correo y contraseña.'));
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -133,9 +96,10 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
                 <button 
                   type="submit" 
                   className="btn btn-success w-100 py-2 fw-semibold shadow-sm mb-3"
+                  disabled={cargando}
                   data-testid="btn-login-submit"
                 >
-                  Ingresar a HuertoHogar
+                  {cargando ? 'Verificando con el servidor...' : 'Ingresar a HuertoHogar'}
                 </button>
               </form>
 
@@ -151,8 +115,8 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
               </div>
 
               <div className="bg-light p-3 rounded mt-3 text-center small text-muted">
-                <div><i className="bi bi-person-fill text-primary me-1"></i><strong>Cliente:</strong> <code>cliente@huertohogar.cl</code> / <code>Password123*</code></div>
-                <div className="mt-1"><i className="bi bi-gear-fill text-success me-1"></i><strong>Admin:</strong> <code>admin@huertohogar.cl</code> / <code>Admin123*</code></div>
+                <i className="bi bi-shield-check text-success me-1"></i>
+                Autenticación verificada mediante Spring Security, BCrypt y JWT.
               </div>
             </div>
           </div>
@@ -161,4 +125,3 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
     </div>
   );
 }
-

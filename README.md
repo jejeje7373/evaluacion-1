@@ -1,4 +1,4 @@
-# 🌿 HuertoHogar — Tienda Web de Productos del Campo
+# HuertoHogar — Tienda Web de Productos del Campo
 
 > **Evaluación Formativa N.° 1 — Creando mi primera tienda web**  
 > **Asignatura:** Desarrollo de Software Web (DSY1104)  
@@ -7,7 +7,7 @@
 
 ---
 
-## 📌 1. Descripción del Proyecto
+## 1. Descripción del Proyecto
 
 **HuertoHogar** es una tienda online chilena con más de 6 años de trayectoria dedicada a conectar a las familias con la frescura, calidad y sostenibilidad de los productos del campo. Operamos en más de 9 puntos clave del país (Santiago, Viña del Mar, Valparaíso, Concepción, Nacimiento, Villarrica, Puerto Montt, entre otros).
 
@@ -15,7 +15,7 @@ Esta solución web implementa una arquitectura frontend basada estrictamente en 
 
 ---
 
-## 📂 2. Estructura del Repositorio
+## 2. Estructura del Repositorio
 
 ```text
 evualuacion1/
@@ -48,7 +48,7 @@ evualuacion1/
 
 ---
 
-## 🚀 3. Instrucciones para Abrir y Probar el Sitio
+## 3. Instrucciones para Abrir y Probar el Sitio
 
 ### Opción A: Directamente desde el Navegador (Sin instalación)
 1. Descarga o clona este repositorio en tu computadora.
@@ -63,7 +63,7 @@ evualuacion1/
 
 ---
 
-## 🔑 4. Datos y Credenciales de Prueba
+## 4. Datos y Credenciales de Prueba
 
 Para facilitar la revisión docente y pruebas inmediatas, el sistema incluye datos preconfigurados:
 
@@ -80,7 +80,7 @@ Para facilitar la revisión docente y pruebas inmediatas, el sistema incluye dat
 
 ---
 
-## 📋 5. Cumplimiento de Resultados Esperados (DSY1104)
+## 5. Cumplimiento de Resultados Esperados (DSY1104)
 
 1. **Estructura semántica HTML5:** Se utilizan elementos nativos `<header>`, `<nav>`, `<main>`, `<section>`, `<article>` y `<footer>` en todas las páginas sin sustitución por `<div>` genéricos.
 2. **Hoja de estilos externa única:** Ubicada en `assets/css/estilos.css`, sin estilos en línea en el cuerpo del sitio, con reset `box-sizing: border-box`, fuentes Google Fonts (*Montserrat* y *Playfair Display*) y paleta oficial de HuertoHogar.
@@ -92,7 +92,7 @@ Para facilitar la revisión docente y pruebas inmediatas, el sistema incluye dat
 
 ---
 
-## 👨‍💻 Autor y Asignatura
+## Autor y Asignatura
 - **Proyecto:** Evaluación Formativa N.° 1 — DSY1104
 - **Carrera:** Informática / Analista Programador — Duoc UC
 

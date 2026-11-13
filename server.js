@@ -19,9 +19,9 @@ app.use((req, res) => {
 // Escuchar en 0.0.0.0 para permitir conexiones desde fuera (EC2 / Red local)
 app.listen(PORT, '0.0.0.0', () => {
   console.log('========================================================');
-  console.log('🌿 HuertoHogar — Servidor Node.js (Express) Ejecutándose');
-  console.log(`🚀 Puerto activo: ${PORT}`);
-  console.log(`🌐 Local:        http://localhost:${PORT}`);
-  console.log(`🌐 Servidor/EC2: http://<IP_PUBLICA_EC2>:${PORT}`);
+  console.log('HuertoHogar — Servidor Node.js (Express) Ejecutándose');
+  console.log(`Puerto activo: ${PORT}`);
+  console.log(`Local:         http://localhost:${PORT}`);
+  console.log(`Servidor/EC2:  http://<IP_PUBLICA_EC2>:${PORT}`);
   console.log('========================================================');
 });

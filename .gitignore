@@ -5,6 +5,12 @@ node_modules/
 dist/
 dist-ssr/
 *.local
+.env
+
+# Reportes de pruebas
+coverage/
+playwright-report/
+test-results/
 
 # Logs
 npm-debug.log*

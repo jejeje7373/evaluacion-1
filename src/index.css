@@ -11,8 +11,411 @@
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: #2b2b2b;
-  background-color: #fbfdfb;
+  background: linear-gradient(180deg, #eff8ec 0%, #e4f3df 45%, #f2f9ef 100%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ==============================================================================
+   FONDO ANIMADO DE HUERTO (ÁRBOLES MECIÉNDOSE Y HOJAS FLOTANTES)
+   ============================================================================== */
+
+.orchard-bg-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 15% 12%, rgba(254, 249, 195, 0.55) 0%, transparent 48%),
+              radial-gradient(circle at 85% 18%, rgba(187, 247, 208, 0.45) 0%, transparent 52%);
+}
+
+.orchard-sun-glow {
+  position: absolute;
+  top: -120px;
+  left: -80px;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(253, 224, 71, 0.18) 0%, rgba(187, 247, 208, 0.08) 45%, transparent 72%);
+  animation: orchardSunPulse 9s ease-in-out infinite alternate;
+}
+
+.orchard-pollen-mote {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(254, 240, 138, 0.9) 0%, rgba(134, 239, 172, 0.4) 70%, transparent 100%);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.35);
+  animation-name: orchardMoteFloat;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.orchard-hills-svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 240px;
+}
+
+.orchard-tree {
+  position: absolute;
+  bottom: -12px;
+  filter: drop-shadow(0 18px 32px rgba(20, 83, 45, 0.28))
+          drop-shadow(0 6px 14px rgba(120, 53, 15, 0.22));
+}
+
+.orchard-tree-left-lg {
+  left: -35px;
+  width: 340px;
+  height: 440px;
+}
+
+.orchard-tree-left-sm {
+  left: 195px;
+  width: 205px;
+  height: 300px;
+}
+
+.orchard-tree-right-lg {
+  right: -35px;
+  width: 350px;
+  height: 450px;
+}
+
+.orchard-tree-right-sm {
+  right: 200px;
+  width: 210px;
+  height: 305px;
+}
+
+/* Movimiento orgánico independiente por capas de árbol */
+.orchard-trunk-sway {
+  transform-origin: 50% 100%;
+  animation: orchardTrunkSway 9s ease-in-out infinite;
+}
+
+.orchard-trunk-sway-alt {
+  transform-origin: 50% 100%;
+  animation: orchardTrunkSway 10.5s ease-in-out infinite reverse;
+}
+
+.orchard-canopy-back {
+  transform-origin: 50% 72%;
+  animation: orchardCanopyWave 7.5s ease-in-out infinite;
+}
+
+.orchard-canopy-mid-back {
+  transform-origin: 50% 74%;
+  animation: orchardCanopyWave 8.4s ease-in-out -2.2s infinite reverse;
+}
+
+.orchard-canopy-top {
+  transform-origin: 50% 80%;
+  animation: orchardCanopyTopWave 6.7s ease-in-out -1.4s infinite;
+}
+
+.orchard-dappled-light {
+  animation: orchardDappleShimmer 5.5s ease-in-out infinite alternate;
+}
+
+.orchard-tree-rustling {
+  transform-origin: 50% 62%;
+  animation: orchardTreeRustle 0.56s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.orchard-branch-left {
+  transform-origin: 78% 72%;
+  animation: orchardBranchRustleLeft 5.4s ease-in-out -0.9s infinite;
+}
+
+.orchard-tree-right-lg .orchard-canopy-top {
+  animation-duration: 7.3s;
+  animation-delay: -2.6s;
+}
+
+.orchard-tree-right-lg .orchard-branch-left {
+  animation-duration: 6.1s;
+  animation-delay: -1.8s;
+}
+
+.orchard-branch-right {
+  transform-origin: 22% 72%;
+  animation: orchardBranchRustleRight 5.2s ease-in-out infinite;
+}
+
+.orchard-fruit-bob {
+  transform-origin: 50% 35%;
+  animation: orchardFruitBob 3.6s ease-in-out infinite;
+}
+
+.orchard-fruit-bob-alt {
+  transform-origin: 50% 35%;
+  animation: orchardFruitBob 4.2s ease-in-out infinite reverse;
+}
+
+.orchard-floating-leaf {
+  position: absolute;
+  top: -35px;
+  animation-name: orchardLeafDrift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+.orchard-leaf-alt {
+  animation-name: orchardLeafDriftAlt;
+}
+
+.orchard-leaf-gentle {
+  animation-name: orchardLeafDriftGentle;
+}
+
+.orchard-interactive-leaf {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  transform-origin: center center;
+  animation-name: orchardInteractiveLeafFall;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-fill-mode: forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes orchardSunPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes orchardMoteFloat {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(0.85);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate(22px, -32px) scale(1.25);
+    opacity: 0.85;
+  }
+}
+
+@keyframes orchardTrunkSway {
+  0%, 100% {
+    transform: rotate(-0.8deg);
+  }
+  50% {
+    transform: rotate(0.9deg);
+  }
+}
+
+@keyframes orchardCanopyWave {
+  0%, 100% {
+    transform: rotate(-1.8deg) skewX(-0.8deg) scale(1);
+  }
+  50% {
+    transform: rotate(2.1deg) skewX(0.9deg) scale(1.015);
+  }
+}
+
+@keyframes orchardCanopyTopWave {
+  0%, 100% {
+    transform: translateX(-3px) rotate(-2.5deg) scale(1);
+  }
+  50% {
+    transform: translateX(4px) rotate(2.8deg) scale(1.02);
+  }
+}
+
+@keyframes orchardBranchRustleLeft {
+  0%, 100% {
+    transform: rotate(-3.2deg) translateY(0px);
+  }
+  50% {
+    transform: rotate(2.6deg) translateY(-3px);
+  }
+}
+
+@keyframes orchardBranchRustleRight {
+  0%, 100% {
+    transform: rotate(2.8deg) translateY(0px);
+  }
+  50% {
+    transform: rotate(-3.4deg) translateY(-3px);
+  }
+}
+
+@keyframes orchardFruitBob {
+  0%, 100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4.5deg);
+  }
+}
+
+@keyframes orchardLeafDrift {
+  0% {
+    transform: translateY(-40px) translateX(0px) rotate(0deg) scaleX(1);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.8;
+  }
+  35% {
+    transform: translateY(34vh) translateX(48px) rotate(110deg) scaleX(-0.7);
+    opacity: 0.72;
+  }
+  70% {
+    transform: translateY(70vh) translateX(-26px) rotate(240deg) scaleX(0.9);
+    opacity: 0.68;
+  }
+  100% {
+    transform: translateY(106vh) translateX(34px) rotate(360deg) scaleX(-1);
+    opacity: 0;
+  }
+}
+
+@keyframes orchardLeafDriftAlt {
+  0% {
+    transform: translateY(-40px) translateX(0px) rotate(20deg) scaleX(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.75;
+  }
+  45% {
+    transform: translateY(44vh) translateX(-52px) rotate(-130deg) scaleX(-0.8);
+    opacity: 0.65;
+  }
+  75% {
+    transform: translateY(76vh) translateX(28px) rotate(-250deg) scaleX(0.85);
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(106vh) translateX(-30px) rotate(-370deg) scaleX(1);
+    opacity: 0;
+  }
+}
+
+@keyframes orchardLeafDriftGentle {
+  0% {
+    transform: translateY(-40px) translateX(0px) rotate(-12deg) scaleX(1);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.78;
+  }
+  38% {
+    transform: translateY(36vh) translateX(36px) rotate(85deg) scaleX(-0.75);
+    opacity: 0.72;
+  }
+  68% {
+    transform: translateY(68vh) translateX(-42px) rotate(195deg) scaleX(0.85);
+    opacity: 0.68;
+  }
+  100% {
+    transform: translateY(106vh) translateX(18px) rotate(310deg) scaleX(-0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes orchardDappleShimmer {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 0.98;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes orchardTreeRustle {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(-2.1deg) translateX(-2px) scale(1.012);
+  }
+  45% {
+    transform: rotate(1.9deg) translateX(2.5px) scale(1.015);
+  }
+  70% {
+    transform: rotate(-1.1deg) translateX(-1px) scale(1.006);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes orchardInteractiveLeafFall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.82);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.95;
+    transform: translate3d(calc(var(--leaf-drift-x, 40px) * 0.18), 24px, 0) rotate(calc(var(--leaf-rot, 180deg) * 0.2)) scale(1.04);
+  }
+  48% {
+    opacity: 0.88;
+    transform: translate3d(calc(var(--leaf-drift-x, 40px) * -0.25), calc(var(--leaf-fall-y, 320px) * 0.48), 0) rotate(calc(var(--leaf-rot, 180deg) * 0.55)) scaleX(-0.85);
+  }
+  82% {
+    opacity: 0.72;
+  }
+  100% {
+    transform: translate3d(var(--leaf-drift-x, 40px), var(--leaf-fall-y, 320px), 0) rotate(var(--leaf-rot, 180deg)) scale(0.88);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orchard-sun-glow,
+  .orchard-pollen-mote,
+  .orchard-trunk-sway,
+  .orchard-trunk-sway-alt,
+  .orchard-canopy-back,
+  .orchard-canopy-mid-back,
+  .orchard-canopy-top,
+  .orchard-dappled-light,
+  .orchard-branch-left,
+  .orchard-branch-right,
+  .orchard-fruit-bob,
+  .orchard-fruit-bob-alt,
+  .orchard-floating-leaf,
+  .orchard-tree-rustling {
+    animation: none !important;
+  }
+}
+
+.hero-orchard-glass {
+  background: rgba(244, 250, 241, 0.72) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+@media (max-width: 768px) {
+  .orchard-tree-left-lg {
+    width: 185px;
+    height: 250px;
+    left: -38px;
+  }
+  .orchard-tree-right-lg {
+    width: 190px;
+    height: 255px;
+    right: -38px;
+  }
+  .orchard-tree-left-sm,
+  .orchard-tree-right-sm {
+    display: none;
+  }
 }
 
 /* Micro-interacciones suaves estilo SmoothUI para tarjetas */
@@ -86,3 +489,263 @@ body {
 .tracking-wide {
   letter-spacing: 0.5px;
 }
+
+@keyframes smoothProductHighlight {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 139, 87, 0.7); }
+  50% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(46, 139, 87, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 139, 87, 0); }
+}
+
+.product-highlight {
+  animation: smoothProductHighlight 1.2s ease-in-out 2;
+  border: 2px solid #2e8b57 !important;
+  border-radius: var(--smooth-radius);
+}
+
+/* ==============================================================================
+   NATIVE BLOOM: GALLERY PHOTO EXPAND & SHARED TRANSITIONS
+   ============================================================================== */
+
+.photo-expand-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.photo-expand-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1055;
+}
+
+.photo-expand-card {
+  position: relative;
+  z-index: 1065;
+  width: 100%;
+  max-width: 960px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 1.5rem !important;
+  background: #ffffff;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.photo-expand-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1070;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.photo-expand-close-btn:hover {
+  background: #ffffff;
+  color: #0f172a;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.photo-expand-nav-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1066;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.photo-expand-nav-btn:hover {
+  background: #ffffff;
+  color: #2e8b57;
+  transform: translateY(-50%) scale(1.12);
+}
+
+.photo-expand-nav-prev {
+  left: 1.5rem;
+}
+
+.photo-expand-nav-next {
+  right: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .photo-expand-nav-btn {
+    display: none;
+  }
+  .photo-expand-card {
+    max-height: 95vh;
+    border-radius: 1.25rem !important;
+  }
+}
+
+/* ==============================================================================
+   MOTION.DEV: 3D GALLERY HELIX (SCROLL-DRIVEN SPIRAL)
+   ============================================================================== */
+
+.helix-scroll-track {
+  position: relative;
+  height: 280vh;
+  background: radial-gradient(circle at 50% 50%, rgba(240, 253, 244, 0.68) 0%, rgba(236, 250, 233, 0.48) 60%, rgba(255, 255, 255, 0.22) 100%);
+  border-top: 1px solid rgba(46, 139, 87, 0.12);
+  border-bottom: 1px solid rgba(46, 139, 87, 0.12);
+}
+
+.helix-sticky-viewport {
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+.helix-scene-3d {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1300px;
+  perspective-origin: 50% 50%;
+}
+
+.helix-spine {
+  position: relative;
+  width: 240px;
+  height: 280px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.helix-card-3d {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 270px;
+  border-radius: 1.35rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(46, 139, 87, 0.22);
+  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.18),
+              0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.helix-card-3d:hover {
+  border-color: #2e8b57;
+  box-shadow: 0 25px 55px -10px rgba(46, 139, 87, 0.35),
+              0 0 0 2px #2e8b57 inset;
+}
+
+.helix-card-active {
+  border-color: #16a34a;
+  box-shadow: 0 28px 60px -12px rgba(22, 163, 74, 0.32),
+              0 0 0 2px rgba(22, 163, 74, 0.4) inset;
+}
+
+.helix-card-img-wrap {
+  height: 125px;
+  background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.helix-card-img {
+  max-height: 100px;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.12));
+  transition: transform 0.3s ease;
+}
+
+.helix-card-3d:hover .helix-card-img {
+  transform: scale(1.1);
+}
+
+.helix-axis-line {
+  position: absolute;
+  top: -600px;
+  bottom: -600px;
+  left: 50%;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(46, 139, 87, 0.15) 20%,
+    rgba(46, 139, 87, 0.35) 50%,
+    rgba(46, 139, 87, 0.15) 80%,
+    transparent 100%
+  );
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .helix-scroll-track {
+    height: 240vh;
+  }
+  .helix-spine,
+  .helix-card-3d {
+    width: 195px;
+    height: 235px;
+  }
+  .helix-card-img-wrap {
+    height: 95px;
+  }
+  .helix-card-img {
+    max-height: 75px;
+  }
+}
+
+

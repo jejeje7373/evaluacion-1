@@ -1,36 +1,28 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import CartIcon from './CartIcon.jsx';
 
 /**
  * Componente Cart (Carrito de Compras)
  * 
- * Responsividad Bootstrap:
- * - 2 Columnas en escritorio: col-12 col-lg-8 (listado de ítems) y col-12 col-lg-4 (resumen de pago)
- * - Tabla responsive con table-responsive para móviles
- * 
- * Props:
- * - cartItems: Lista de productos en el carrito
- * - onUpdateQuantity: Callback para modificar cantidad (+/-)
- * - onRemoveItem: Callback para remover ítem
- * - onClearCart: Callback para vaciar el carrito
- * - onContinueShopping: Callback para volver al catálogo
- * 
- * Estado:
- * - cuponInput: Texto del cupón ingresado por el usuario
- * - descuentoPorcentaje: Porcentaje de descuento activo (ej: 0.10 = 10%)
- * - mensajeCupon: Mensaje reactivo de éxito o error al validar cupón
- * - ordenSimulada: Alerta con resumen cuando se finaliza la compra
+ * Conectado al microservicio ms-ventas mediante la capa de servicios y la prop onCheckout provista por App.jsx, lo que además descuenta stock en ms-productos.
  */
 export default function Cart({
   cartItems = [],
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
-  onContinueShopping
+  onContinueShopping,
+  currentUser = null,
+  onCheckout
 }) {
   const [cuponInput, setCuponInput] = useState('');
+  const [cuponAplicado, setCuponAplicado] = useState('');
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0);
   const [mensajeCupon, setMensajeCupon] = useState(null);
   const [ordenSimulada, setOrdenSimulada] = useState(null);
+  const [errorCheckout, setErrorCheckout] = useState('');
+  const [procesandoPago, setProcesandoPago] = useState(false);
 
   // Cupones válidos oficiales
   const CUPONES = {
@@ -58,12 +50,14 @@ export default function Cart({
     if (CUPONES[codigoLimpio]) {
       const porcentaje = CUPONES[codigoLimpio];
       setDescuentoPorcentaje(porcentaje);
+      setCuponAplicado(codigoLimpio);
       setMensajeCupon({
         tipo: 'success',
         texto: `¡Cupón "${codigoLimpio}" aplicado! Descuento del ${porcentaje * 100}%.`
       });
     } else {
       setDescuentoPorcentaje(0);
+      setCuponAplicado('');
       setMensajeCupon({
         tipo: 'danger',
         texto: 'Código de cupón inválido o caducado.'
@@ -71,10 +65,54 @@ export default function Cart({
     }
   };
 
-  const handleFinalizarCompra = () => {
+  const handleFinalizarCompra = async () => {
+    setErrorCheckout('');
+
+    if (onCheckout) {
+      try {
+        setProcesandoPago(true);
+        const payload = {
+          emailCliente: currentUser?.email || 'invitado@huertohogar.cl',
+          nombreCliente: currentUser?.nombre || 'Cliente Invitado',
+          regionDestino: currentUser?.region || 'Región Metropolitana',
+          comunaDestino: currentUser?.comuna || 'Santiago',
+          descuentoPorcentaje: Math.round(descuentoPorcentaje * 100),
+          cuponAplicado: cuponAplicado || null,
+          detalles: cartItems.map(item => ({
+            codigoProducto: item.codigo,
+            nombreProducto: item.nombre,
+            cantidad: item.cantidad,
+            precioUnitario: item.precio,
+            unidad: item.unidad
+          }))
+        };
+
+        const ordenCreada = await onCheckout(payload);
+        const orden = {
+          numero: ordenCreada?.id ? `HH-${String(ordenCreada.id).padStart(6, '0')}` : 'HH-' + Math.floor(100000 + Math.random() * 900000),
+          totalFinal: ordenCreada?.total ?? total,
+          estado: ordenCreada?.estado || 'CONFIRMADA',
+          itemsCount: cartItems.reduce((acc, i) => acc + i.cantidad, 0),
+          fecha: new Date().toLocaleDateString('es-CL')
+        };
+        setOrdenSimulada(orden);
+        if (onClearCart) {
+          onClearCart();
+        }
+      } catch (err) {
+        const msg = err?.response?.data?.error || 'No se pudo procesar la compra en el servidor. Verifica el stock disponible.';
+        setErrorCheckout(msg);
+      } finally {
+        setProcesandoPago(false);
+      }
+      return;
+    }
+
+    // Fallback síncrono para pruebas unitarias aisladas (Karma/Jasmine)
     const orden = {
       numero: 'HH-' + Math.floor(100000 + Math.random() * 900000),
       totalFinal: total,
+      estado: 'Preparando en Huerto',
       itemsCount: cartItems.reduce((acc, i) => acc + i.cantidad, 0),
       fecha: new Date().toLocaleDateString('es-CL')
     };
@@ -87,7 +125,9 @@ export default function Cart({
   return (
     <section className="container my-4" data-testid="cart-container">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="h3 fw-bold text-dark mb-0">Tu Canasta de Compras</h2>
+        <h2 className="h3 fw-bold text-dark mb-0 d-flex align-items-center">
+          <CartIcon size={24} className="me-2 text-success" /> Tu Canasta de Compras
+        </h2>
         <button 
           className="btn btn-outline-success btn-sm"
           onClick={onContinueShopping}
@@ -97,23 +137,118 @@ export default function Cart({
         </button>
       </div>
 
-      {ordenSimulada && (
-        <div className="alert alert-success shadow-sm p-4 text-center mb-4" data-testid="checkout-success-alert">
-          <i className="bi bi-check-circle-fill text-success display-4 d-block mb-2"></i>
-          <h4 className="alert-heading fw-bold">¡Compra simulada realizada con éxito!</h4>
-          <p className="mb-2">
-            Hemos generado tu orden de despacho <strong>{ordenSimulada.numero}</strong> por un total de <strong>{formatearDinero(ordenSimulada.totalFinal)}</strong>.
-          </p>
-          <small className="text-muted d-block mb-3">Recibirás los detalles en el correo registrado.</small>
-          <button 
-            className="btn btn-success btn-sm"
-            onClick={() => setOrdenSimulada(null)}
-            data-testid="btn-dismiss-success"
-          >
-            Aceptar y Volver
-          </button>
+      {errorCheckout && (
+        <div className="alert alert-danger shadow-sm mb-4" role="alert" data-testid="checkout-error-alert">
+          <i className="bi bi-exclamation-triangle-fill me-2"></i>
+          {errorCheckout}
         </div>
       )}
+
+      {/* Confirmación animada estilo React Animate Suspense (Motion) */}
+      <AnimatePresence mode="wait">
+        {ordenSimulada && (
+          <motion.div 
+            className="alert alert-success shadow-lg p-4 p-md-5 text-center mb-4 border-0 rounded-4" 
+            data-testid="checkout-success-alert"
+            initial={{ opacity: 0, scale: 0.92, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: -16 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}
+          >
+            {/* SVG Checkmark animado con trazo progresivo (Motion Draw Effect) */}
+            <motion.svg 
+              width="80" 
+              height="80" 
+              viewBox="0 0 80 80" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="d-block mx-auto mb-3 text-success"
+            >
+              <motion.circle 
+                cx="40" 
+                cy="40" 
+                r="36" 
+                stroke="#22c55e" 
+                strokeWidth="4" 
+                strokeLinecap="round"
+                initial={{ pathLength: 0, rotate: -90 }}
+                animate={{ pathLength: 1, rotate: 0 }}
+                transition={{ duration: 0.65, ease: 'easeOut' }}
+              />
+              <motion.path 
+                d="M26 40 L36 50 L54 32" 
+                stroke="#16a34a" 
+                strokeWidth="4.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ delay: 0.35, duration: 0.45, ease: 'easeOut' }}
+              />
+            </motion.svg>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.3 }}
+            >
+              <span className="badge bg-success-subtle text-success border border-success px-3 py-1 rounded-pill small mb-2 fw-semibold">
+                <i className="bi bi-shield-check me-1"></i> Pago Verificado con Éxito
+              </span>
+              <h4 className="alert-heading fw-bold text-dark mt-1 mb-2">¡Compra simulada realizada con éxito!</h4>
+              <p className="mb-3 text-secondary fs-6" style={{ maxWidth: '600px', margin: '0 auto' }}>
+                Hemos generado tu orden de despacho <strong className="text-dark font-monospace">{ordenSimulada.numero}</strong> por un total de <strong className="text-success">{formatearDinero(ordenSimulada.totalFinal)}</strong>.
+              </p>
+
+              {/* Ficha resumen con animación stagger */}
+              <div className="card border-0 bg-white shadow-sm p-3 mx-auto mb-4 text-start" style={{ maxWidth: '520px', borderRadius: '1rem' }}>
+                <div className="d-flex justify-content-between align-items-center pb-2 border-bottom mb-2">
+                  <span className="text-muted small">N° de Seguimiento:</span>
+                  <span className="font-monospace fw-bold text-dark">{ordenSimulada.numero}</span>
+                </div>
+                <div className="d-flex justify-content-between align-items-center pb-2 border-bottom mb-2">
+                  <span className="text-muted small">Fecha estimada de entrega:</span>
+                  <span className="fw-semibold text-dark">
+                    <i className="bi bi-truck text-success me-1"></i> 24-48 hrs refrigerado
+                  </span>
+                </div>
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-muted small">Estado del pedido:</span>
+                  <span className="badge bg-success rounded-pill">{ordenSimulada.estado || 'Preparando en Huerto'}</span>
+                </div>
+              </div>
+
+              <small className="text-muted d-block mb-4">
+                <i className="bi bi-envelope-check me-1"></i> Recibirás el comprobante y los detalles en el correo registrado.
+              </small>
+
+              <div className="d-flex justify-content-center gap-2">
+                <motion.button 
+                  className="btn btn-success px-4 py-2 fw-semibold shadow-sm"
+                  onClick={() => setOrdenSimulada(null)}
+                  data-testid="btn-dismiss-success"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <i className="bi bi-check2-circle me-1"></i> Aceptar y Volver
+                </motion.button>
+                <motion.button 
+                  className="btn btn-outline-success px-4 py-2 fw-semibold"
+                  onClick={() => {
+                    setOrdenSimulada(null);
+                    if (onContinueShopping) onContinueShopping();
+                  }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  Explorar Más Productos
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {cartItems.length === 0 && !ordenSimulada ? (
         <div className="card shadow-sm border-0 text-center py-5 my-4" data-testid="empty-cart-view">
@@ -291,11 +426,13 @@ export default function Cart({
                 </div>
 
                 <button 
-                  className="btn btn-success w-100 py-2 fw-semibold shadow-sm"
+                  className="btn btn-success w-100 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center"
                   onClick={handleFinalizarCompra}
+                  disabled={procesandoPago}
                   data-testid="btn-checkout"
                 >
-                  Finalizar Compra y Simular Pago
+                  <CartIcon size={20} className="me-2" />
+                  {procesandoPago ? 'Procesando Orden...' : 'Finalizar Compra y Simular Pago'}
                 </button>
               </div>
             </div>
@@ -305,4 +442,3 @@ export default function Cart({
     </section>
   );
 }
-

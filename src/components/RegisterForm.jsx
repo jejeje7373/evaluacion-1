@@ -1,28 +1,19 @@
 import React, { useState } from 'react';
 import { REGIONES_CHILE } from '../data/regiones.js';
+import { registrarUsuario, obtenerMensajeError } from '../services/api.js';
 
 /**
  * Componente RegisterForm
- * 
- * Responsividad Bootstrap:
- * - Formulario en cuadrícula de 2 columnas en pantallas medianas/grandes (col-12 col-md-6)
- * - Centrado en pantalla con col-12 col-lg-8
- * 
- * Props:
- * - onRegisterSuccess: Callback con el usuario creado
- * - onSwitchToLogin: Callback para volver al login
- * 
- * Estado:
- * - formData: Valores de todos los campos controlados
- * - errors: Objeto con mensajes de error por campo específico
- * - exito: Mensaje de confirmación cuando el registro es válido
+ *
+ * Registra nuevos usuarios CLIENTE contra el microservicio de usuarios.
  */
-export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
+export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin, onRegister }) {
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
     password: '',
     confirmPassword: '',
+    rol: 'cliente',
     region: '',
     comuna: '',
     direccion: '',
@@ -31,6 +22,8 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
 
   const [errors, setErrors] = useState({});
   const [mensajeExito, setMensajeExito] = useState('');
+  const [errorServidor, setErrorServidor] = useState('');
+  const [cargando, setCargando] = useState(false);
 
   // Lista reactiva de comunas según la región elegida
   const comunasDisponibles = formData.region && REGIONES_CHILE[formData.region] 
@@ -44,16 +37,17 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
         ...prev,
         [name]: type === 'checkbox' ? checked : value
       };
-      // Si cambia la región, reiniciamos la comuna seleccionada
       if (name === 'region') {
         updated.comuna = '';
       }
       return updated;
     });
 
-    // Limpiar el error del campo al escribir
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    if (errorServidor) {
+      setErrorServidor('');
     }
   };
 
@@ -93,36 +87,41 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorServidor('');
     if (!validar()) {
       return;
     }
 
+    const rolElegido = (formData.rol || 'CLIENTE').toUpperCase() === 'VENDEDOR' ? 'VENDEDOR' : 'CLIENTE';
     const nuevoUsuario = {
       nombre: formData.nombre.trim(),
       email: formData.email.trim(),
       password: formData.password,
       region: formData.region,
       comuna: formData.comuna,
-      direccion: formData.direccion.trim()
+      direccion: formData.direccion.trim(),
+      role: rolElegido,
+      rol: rolElegido
     };
 
-    // Guardar en localStorage
     try {
-      const usuarios = JSON.parse(localStorage.getItem('huertohogar_usuarios') || '[]');
-      usuarios.push(nuevoUsuario);
-      localStorage.setItem('huertohogar_usuarios', JSON.stringify(usuarios));
-    } catch {
-      // Ignorar error de persistencia
+      setCargando(true);
+      const registerFn = onRegister || registrarUsuario;
+      const resultado = await registerFn(nuevoUsuario);
+      const usuarioCreado = resultado?.user || resultado;
+      setMensajeExito('¡Registro exitoso! Cuenta guardada en la base de datos.');
+      setTimeout(() => {
+        if (onRegisterSuccess) {
+          onRegisterSuccess(usuarioCreado, resultado?.token || '');
+        }
+      }, 600);
+    } catch (err) {
+      setErrorServidor(obtenerMensajeError(err, 'Error al registrar el usuario en el servidor.'));
+    } finally {
+      setCargando(false);
     }
-
-    setMensajeExito('¡Registro exitoso! Ya puedes iniciar sesión con tus credenciales.');
-    setTimeout(() => {
-      if (onRegisterSuccess) {
-        onRegisterSuccess(nuevoUsuario);
-      }
-    }, 1500);
   };
 
   return (
@@ -140,6 +139,12 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
               {mensajeExito && (
                 <div className="alert alert-success py-2 small mb-3 text-center" role="alert" data-testid="register-success">
                   {mensajeExito}
+                </div>
+              )}
+
+              {errorServidor && (
+                <div className="alert alert-danger py-2 small mb-3 text-center" role="alert" data-testid="register-server-error">
+                  {errorServidor}
                 </div>
               )}
 
@@ -215,6 +220,26 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
                       data-testid="input-confirm-password"
                     />
                     {errors.confirmPassword && <div className="invalid-feedback" data-testid="error-confirm-password">{errors.confirmPassword}</div>}
+                  </div>
+
+                  <div className="col-12">
+                    <label htmlFor="regRol" className="form-label small fw-semibold text-secondary">
+                      Tipo de Cuenta *
+                    </label>
+                    <select
+                      id="regRol"
+                      name="rol"
+                      className="form-select"
+                      value={(formData.rol || 'CLIENTE').toUpperCase()}
+                      onChange={handleChange}
+                      data-testid="select-register-rol"
+                    >
+                      <option value="CLIENTE">Usuario Común (CLIENTE - Comprar productos)</option>
+                      <option value="VENDEDOR">Vendedor / Productor V Región (VENDEDOR - Publicar frutas y ver estadísticas)</option>
+                    </select>
+                    <div className="form-text small text-muted">
+                      Nota: Las cuentas de Administrador solo pueden ser asignadas por un Administrador interno.
+                    </div>
                   </div>
 
                   {/* Select Región */}
@@ -300,9 +325,10 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
                 <button 
                   type="submit" 
                   className="btn btn-success w-100 py-2 fw-semibold shadow-sm mt-4 mb-3"
+                  disabled={cargando}
                   data-testid="btn-register-submit"
                 >
-                  Registrarse en HuertoHogar
+                  {cargando ? 'Registrando en el servidor...' : 'Registrarse en HuertoHogar'}
                 </button>
               </form>
 

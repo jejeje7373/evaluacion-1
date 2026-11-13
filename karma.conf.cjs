@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 // Asegurar ruta de Chrome en entornos Linux/Debian/Ubuntu
 if (!process.env.CHROME_BIN) {
@@ -33,6 +34,17 @@ module.exports = function(config) {
 
     webpack: {
       mode: 'development',
+      plugins: [
+        new webpack.DefinePlugin({
+          'import.meta.env': JSON.stringify({
+            VITE_API_USUARIOS_URL: 'http://api.test/usuarios/api',
+            VITE_API_CATEGORIAS_URL: 'http://api.test/categorias/api/categories',
+            VITE_API_PRODUCTOS_URL: 'http://api.test/productos/api/products',
+            VITE_API_VENTAS_URL: 'http://api.test/ventas/api/orders',
+            VITE_API_REPORTES_URL: 'http://api.test/reportes/api/reports'
+          })
+        })
+      ],
       module: {
         rules: [
           {
@@ -44,6 +56,12 @@ module.exports = function(config) {
                 presets: [
                   ['@babel/preset-env', { targets: { node: 'current' } }],
                   ['@babel/preset-react', { runtime: 'automatic' }]
+                ],
+                plugins: [
+                  ['babel-plugin-istanbul', {
+                    include: ['src/**/*.{js,jsx}'],
+                    exclude: ['tests/**', 'src/main.jsx']
+                  }]
                 ]
               }
             }
@@ -59,7 +77,17 @@ module.exports = function(config) {
       }
     },
 
-    reporters: ['spec'],
+    reporters: ['spec', 'coverage'],
+
+    coverageReporter: {
+      dir: path.join(__dirname, 'coverage'),
+      subdir: '.',
+      reporters: [
+        { type: 'html' },
+        { type: 'text-summary' },
+        { type: 'lcovonly' }
+      ]
+    },
 
     specReporter: {
       maxLogLines: 5,
@@ -92,7 +120,7 @@ module.exports = function(config) {
 
     client: {
       jasmine: {
-        random: false // Ejecución determinista de tests
+        random: false
       }
     },
 

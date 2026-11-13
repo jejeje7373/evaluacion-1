@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import CartIcon from './CartIcon.jsx';
 
 /**
  * Componente ProductCard (Estilo SmoothUI + Bootstrap 5)
@@ -7,24 +8,31 @@ import { motion } from 'framer-motion';
  * Integra micro-interacciones fluidas y físicas de resorte (spring physics)
  * inspiradas en SmoothUI (smoothui.dev), conservando la grilla responsiva de Bootstrap.
  */
-export default function ProductCard({ producto, onAddToCart }) {
+export default function ProductCard({ producto, onAddToCart, onViewDetails }) {
   const [cantidad, setCantidad] = useState(1);
   const [mensajeFeedback, setMensajeFeedback] = useState('');
 
   if (!producto) return null;
 
-  const handleIncrement = () => {
+  const handleIncrement = (e) => {
+    e?.stopPropagation();
     if (cantidad < producto.stock) setCantidad(prev => prev + 1);
   };
 
-  const handleDecrement = () => {
+  const handleDecrement = (e) => {
+    e?.stopPropagation();
     if (cantidad > 1) setCantidad(prev => prev - 1);
   };
 
-  const handleAgregar = () => {
+  const handleAgregar = (e) => {
+    e?.stopPropagation();
     if (onAddToCart) onAddToCart(producto, cantidad);
     setMensajeFeedback(`${cantidad} ${cantidad > 1 ? 'unidades agregadas' : 'unidad agregada'}`);
     setTimeout(() => setMensajeFeedback(''), 2500);
+  };
+
+  const handleView = () => {
+    if (onViewDetails) onViewDetails(producto);
   };
 
   const precioFormateado = new Intl.NumberFormat('es-CL', {
@@ -37,28 +45,44 @@ export default function ProductCard({ producto, onAddToCart }) {
     <motion.div 
       className="card h-100 shadow-sm border-0 product-card" 
       data-testid={`product-card-${producto.codigo}`}
+      layoutId={`product-card-${producto.codigo}`}
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 350, damping: 25 }}
     >
-      <div className="position-relative bg-light text-center p-3 border-bottom rounded-top overflow-hidden">
-        <span className="badge bg-success position-absolute top-0 start-0 m-2 rounded-pill small" data-testid="badge-categoria">
+      <div 
+        className="position-relative bg-light text-center p-3 border-bottom rounded-top overflow-hidden"
+        style={{ cursor: onViewDetails ? 'pointer' : 'default' }}
+        onClick={handleView}
+        title="Haz clic para ver la información completa"
+      >
+        <span 
+          className="badge bg-success position-absolute top-0 start-0 m-2 rounded-pill small shadow-sm" 
+          style={{ zIndex: 2 }}
+          data-testid="badge-categoria"
+        >
           {producto.categoria}
         </span>
         <motion.img 
+          layoutId={`product-image-${producto.codigo}`}
           src={producto.imagen} 
           alt={producto.nombre} 
-          className="img-fluid" 
-          style={{ height: '140px', objectFit: 'contain' }}
+          className="img-fluid position-relative mt-2" 
+          style={{ height: '140px', objectFit: 'contain', zIndex: 1 }}
           data-testid="product-image"
           onError={(e) => { e.target.style.display = 'none'; }}
-          whileHover={{ scale: 1.08 }}
+          whileHover={{ scale: 1.05 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         />
       </div>
 
       <div className="card-body d-flex flex-column">
         <div className="d-flex justify-content-between align-items-start mb-1">
-          <h5 className="card-title fw-bold text-dark mb-0 fs-6" data-testid="product-name">
+          <h5 
+            className="card-title fw-bold text-dark mb-0 fs-6" 
+            data-testid="product-name"
+            style={{ cursor: onViewDetails ? 'pointer' : 'default' }}
+            onClick={handleView}
+          >
             {producto.nombre}
           </h5>
           <span className="badge bg-light text-muted border small" data-testid="product-code">
@@ -70,7 +94,12 @@ export default function ProductCard({ producto, onAddToCart }) {
           <i className="bi bi-geo-alt-fill text-success me-1"></i> {producto.atributo}
         </p>
 
-        <p className="card-text small text-secondary flex-grow-1" data-testid="product-description">
+        <p 
+          className="card-text small text-secondary flex-grow-1" 
+          data-testid="product-description"
+          style={{ cursor: onViewDetails ? 'pointer' : 'default' }}
+          onClick={handleView}
+        >
           {producto.descripcion}
         </p>
 
@@ -83,11 +112,25 @@ export default function ProductCard({ producto, onAddToCart }) {
           </span>
         </div>
 
-        <div className="small text-muted mb-2" data-testid="product-stock">
-          <i className="bi bi-box-seam me-1"></i> Stock: <strong>{producto.stock}</strong>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <div className="small text-muted" data-testid="product-stock">
+            <i className="bi bi-box-seam me-1"></i> Stock: <strong>{producto.stock}</strong>
+          </div>
+          {onViewDetails && (
+            <button 
+              type="button" 
+              className="btn btn-link btn-sm text-decoration-none p-0 text-success small fw-semibold"
+              onClick={handleView}
+            >
+              Ver detalle <i className="bi bi-chevron-right small"></i>
+            </button>
+          )}
         </div>
 
-        <div className="d-flex align-items-center justify-content-between gap-2 mt-auto pt-2 border-top">
+        <div 
+          className="d-flex align-items-center justify-content-between gap-2 mt-auto pt-2 border-top"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="input-group input-group-sm" style={{ width: '110px' }}>
             <button 
               className="btn btn-outline-secondary" 
@@ -119,14 +162,14 @@ export default function ProductCard({ producto, onAddToCart }) {
           </div>
 
           <motion.button 
-            className="btn btn-success btn-sm flex-grow-1"
+            className="btn btn-success btn-sm flex-grow-1 d-inline-flex align-items-center justify-content-center"
             onClick={handleAgregar}
             data-testid="btn-add-cart"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
           >
-            <i className="bi bi-cart-plus me-1"></i> Agregar
+            <CartIcon size={16} className="me-1" /> Agregar
           </motion.button>
         </div>
 
